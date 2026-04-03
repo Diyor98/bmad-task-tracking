@@ -26,3 +26,21 @@ npm-debug.log*
 
 # Prisma
 backend/prisma/*.db
+
+# Docker
+docker-compose.override.yml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Coverage
+coverage/
+*/coverage/
+
+# Misc
+.cache/
+*.pid
