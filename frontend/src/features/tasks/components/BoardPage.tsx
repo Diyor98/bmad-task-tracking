@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useState, useMemo, useEffect } from 'react'
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/apiClient'
 import { queryKeys } from '@/lib/queryKeys'
@@ -7,6 +7,11 @@ import { useTasks, useUpdateTask, useDeleteTask } from '../hooks/useTasks'
 import { BoardColumn } from './BoardColumn'
 import { TaskDetailPanel } from './TaskDetailPanel'
 import { CreateTaskDialog } from './CreateTaskDialog'
+import { useProjects } from '@/features/projects/hooks/useProjects'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { ChevronDown, Settings } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { StatusSettingsPanel } from './StatusSettingsPanel'
 
 interface Project {
   id: string
@@ -25,8 +30,10 @@ export function BoardPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const selectedTaskId = searchParams.get('task')
 
+  const navigate = useNavigate()
   const [createForStatus, setCreateForStatus] = useState<string | null>(null)
   const [assigneeFilter, setAssigneeFilter] = useState<string | null>(null)
+  const [showStatusSettings, setShowStatusSettings] = useState(false)
 
   const { data: project, isLoading: projectLoading } = useQuery({
     queryKey: queryKeys.projects.detail(projectId!),
@@ -46,6 +53,7 @@ export function BoardPage() {
     },
   })
 
+  const { data: allProjects } = useProjects()
   const updateTask = useUpdateTask(projectId!)
   const deleteTask = useDeleteTask(projectId!)
 
@@ -64,6 +72,12 @@ export function BoardPage() {
     const ids = new Set(tasks.filter((t) => t.assigneeId).map((t) => t.assigneeId!))
     return users.filter((u) => ids.has(u.id))
   }, [tasks, users])
+
+  useEffect(() => {
+    if (selectedTaskId && !tasksLoading && tasks && !selectedTask) {
+      setSearchParams({})
+    }
+  }, [selectedTaskId, tasksLoading, tasks, selectedTask, setSearchParams])
 
   function openTask(taskId: string) {
     setSearchParams({ task: taskId })
@@ -98,9 +112,27 @@ export function BoardPage() {
   return (
     <div className="flex h-full">
       <div className="flex-1 overflow-auto p-6">
-        {/* Header */}
-        <div className="mb-4">
-          <h1 className="text-xl font-semibold text-zinc-900">{project.name}</h1>
+        {/* Header with project switcher */}
+        <div className="mb-4 flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger className="inline-flex items-center gap-1 text-xl font-semibold text-zinc-900 hover:text-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded">
+              {project.name} <ChevronDown className="h-5 w-5" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              {allProjects?.map((p) => (
+                <DropdownMenuItem
+                  key={p.id}
+                  onClick={() => navigate(`/projects/${p.id}`)}
+                  className={p.id === projectId ? 'font-semibold' : ''}
+                >
+                  {p.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShowStatusSettings(!showStatusSettings)}>
+            <Settings className="h-4 w-4" />
+          </Button>
         </div>
 
         {/* Assignee Filter Bar */}
@@ -149,6 +181,15 @@ export function BoardPage() {
           users={users || []}
           onClose={closeTask}
           onUpdate={(data) => updateTask.mutate({ id: selectedTask.id, ...data })}
+        />
+      )}
+
+      {/* Status Settings Panel */}
+      {showStatusSettings && (
+        <StatusSettingsPanel
+          projectId={projectId!}
+          statuses={project.statuses}
+          onClose={() => setShowStatusSettings(false)}
         />
       )}
 

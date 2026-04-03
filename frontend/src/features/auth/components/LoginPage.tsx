@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { LoginSchema, type LoginInput } from '../schemas'
 import { useLogin } from '../hooks/useAuth'
@@ -37,6 +37,13 @@ export function LoginPage() {
   const apiError = login.error instanceof AxiosError
     ? login.error.response?.data?.error?.message
     : login.error?.message
+
+  useEffect(() => {
+    if (apiError) {
+      const timer = setTimeout(() => login.reset(), 4000)
+      return () => clearTimeout(timer)
+    }
+  }, [apiError, login])
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50">

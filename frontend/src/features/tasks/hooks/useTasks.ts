@@ -65,7 +65,16 @@ export function useUpdateTask(projectId: string) {
       await queryClient.cancelQueries({ queryKey: queryKeys.tasks.byProject(projectId) })
       const previous = queryClient.getQueryData<Task[]>(queryKeys.tasks.byProject(projectId))
       queryClient.setQueryData<Task[]>(queryKeys.tasks.byProject(projectId), (old) =>
-        old?.map((t) => (t.id === newData.id ? { ...t, ...newData } : t))
+        old?.map((t) => {
+          if (t.id !== newData.id) return t
+          const updated = { ...t, ...newData }
+          if (newData.statusId && newData.statusId !== t.statusId) {
+            const allTasks = old || []
+            const statusSource = allTasks.find((task) => task.statusId === newData.statusId)
+            if (statusSource) updated.status = statusSource.status
+          }
+          return updated
+        })
       )
       return { previous }
     },

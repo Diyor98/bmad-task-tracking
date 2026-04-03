@@ -5,6 +5,7 @@ import { LoginPage } from '@/features/auth/components/LoginPage'
 import { RegisterPage } from '@/features/auth/components/RegisterPage'
 import { Dashboard } from '@/features/projects/components/Dashboard'
 import { BoardPage } from '@/features/tasks/components/BoardPage'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -19,6 +20,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
+    <ErrorBoundary>
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
@@ -38,6 +40,7 @@ function App() {
         />
       </Routes>
     </BrowserRouter>
+    </ErrorBoundary>
   )
 }
 

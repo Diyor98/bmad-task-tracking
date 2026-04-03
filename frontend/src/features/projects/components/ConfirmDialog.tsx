@@ -19,7 +19,7 @@ export function ConfirmDialog({ open, onClose, onConfirm, title, description, co
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-between gap-2">
           <Button variant="outline" onClick={onClose}>Cancel</Button>
           <Button variant="destructive" onClick={onConfirm} disabled={isPending}>
             {isPending ? 'Deleting...' : confirmLabel}

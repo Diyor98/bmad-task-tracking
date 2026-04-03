@@ -5,13 +5,13 @@ import { validate } from '../middleware/validate'
 import { statusesService } from '../services/statuses.service'
 
 const CreateStatusSchema = z.object({
-  name: z.string().min(1, 'Status name is required'),
-  color: z.string().min(1, 'Status color is required'),
+  name: z.string().trim().min(1, 'Status name is required').max(100),
+  color: z.string().trim().min(1, 'Status color is required').max(50),
 })
 
 const UpdateStatusSchema = z.object({
-  name: z.string().min(1).optional(),
-  color: z.string().min(1).optional(),
+  name: z.string().trim().min(1).max(100).optional(),
+  color: z.string().trim().min(1).max(50).optional(),
 })
 
 const router = Router()

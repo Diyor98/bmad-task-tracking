@@ -5,7 +5,7 @@ import { validate } from '../middleware/validate'
 import { commentsService } from '../services/comments.service'
 
 const CreateCommentSchema = z.object({
-  body: z.string().min(1, 'Comment body is required'),
+  body: z.string().trim().min(1, 'Comment body is required').max(10000),
 })
 
 const router = Router()

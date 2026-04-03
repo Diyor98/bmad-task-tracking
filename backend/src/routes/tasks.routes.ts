@@ -3,17 +3,18 @@ import { z } from 'zod'
 import { requireAuth } from '../middleware/requireAuth'
 import { validate } from '../middleware/validate'
 import { tasksService } from '../services/tasks.service'
+import { AppError } from '../lib/AppError'
 
 const CreateTaskSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().optional(),
+  title: z.string().trim().min(1, 'Title is required').max(255),
+  description: z.string().max(10000).optional(),
   projectId: z.string().min(1),
   statusId: z.string().min(1),
 })
 
 const UpdateTaskSchema = z.object({
-  title: z.string().min(1).optional(),
-  description: z.string().optional(),
+  title: z.string().trim().min(1).max(255).optional(),
+  description: z.string().max(10000).optional(),
   statusId: z.string().optional(),
   assigneeId: z.string().nullable().optional(),
 })
@@ -26,8 +27,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { projectId } = req.query
     if (!projectId || typeof projectId !== 'string') {
-      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'projectId query param required' } })
-      return
+      return next(new AppError('VALIDATION_ERROR', 400, 'projectId query param required'))
     }
     const tasks = await tasksService.listByProject(projectId)
     res.json({ data: tasks })

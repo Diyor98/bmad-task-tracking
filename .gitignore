@@ -44,3 +44,4 @@ coverage/
 # Misc
 .cache/
 *.pid
+_cr-diff.txt

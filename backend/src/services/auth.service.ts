@@ -12,6 +12,7 @@ function signToken(userId: string, email: string): string {
 
 export const authService = {
   async register(name: string, email: string, password: string) {
+    email = email.toLowerCase().trim()
     const existing = await prisma.user.findUnique({ where: { email } })
     if (existing) {
       throw new AppError('CONFLICT', 409, 'An account with this email already exists')
@@ -28,6 +29,7 @@ export const authService = {
   },
 
   async login(email: string, password: string) {
+    email = email.toLowerCase().trim()
     const user = await prisma.user.findUnique({ where: { email } })
     if (!user) {
       throw new AppError('UNAUTHORIZED', 401, 'Email or password incorrect')

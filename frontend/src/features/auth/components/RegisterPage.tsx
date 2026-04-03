@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { RegisterSchema, type RegisterInput } from '../schemas'
 import { useRegister } from '../hooks/useAuth'
@@ -37,6 +37,13 @@ export function RegisterPage() {
   const apiError = register.error instanceof AxiosError
     ? register.error.response?.data?.error?.message
     : register.error?.message
+
+  useEffect(() => {
+    if (apiError) {
+      const timer = setTimeout(() => register.reset(), 4000)
+      return () => clearTimeout(timer)
+    }
+  }, [apiError, register])
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50">

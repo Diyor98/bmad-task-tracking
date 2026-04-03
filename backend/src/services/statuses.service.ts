@@ -47,11 +47,12 @@ export const statusesService = {
       throw new AppError('BAD_REQUEST', 400, 'Cannot delete the default "To Do" status')
     }
 
-    await prisma.task.updateMany({
-      where: { statusId: id },
-      data: { statusId: defaultStatus.id },
-    })
-
-    await prisma.status.delete({ where: { id } })
+    await prisma.$transaction([
+      prisma.task.updateMany({
+        where: { statusId: id },
+        data: { statusId: defaultStatus.id },
+      }),
+      prisma.status.delete({ where: { id } }),
+    ])
   },
 }

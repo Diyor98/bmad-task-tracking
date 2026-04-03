@@ -29,6 +29,10 @@ export const tasksService = {
   },
 
   async create(data: { title: string; description?: string; projectId: string; statusId: string }) {
+    const status = await prisma.status.findUnique({ where: { id: data.statusId } })
+    if (!status || status.projectId !== data.projectId) {
+      throw new AppError('VALIDATION_ERROR', 400, 'Status does not belong to this project')
+    }
     return prisma.task.create({
       data,
       include: {
@@ -43,6 +47,12 @@ export const tasksService = {
     const task = await prisma.task.findUnique({ where: { id } })
     if (!task) {
       throw new AppError('NOT_FOUND', 404, 'Task not found')
+    }
+    if (data.statusId) {
+      const status = await prisma.status.findUnique({ where: { id: data.statusId } })
+      if (!status || status.projectId !== task.projectId) {
+        throw new AppError('VALIDATION_ERROR', 400, 'Status does not belong to this project')
+      }
     }
     return prisma.task.update({
       where: { id },

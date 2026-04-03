@@ -5,11 +5,11 @@ import { validate } from '../middleware/validate'
 import { projectsService } from '../services/projects.service'
 
 const CreateProjectSchema = z.object({
-  name: z.string().min(1, 'Project name is required'),
+  name: z.string().trim().min(1, 'Project name is required').max(255),
 })
 
 const UpdateProjectSchema = z.object({
-  name: z.string().min(1, 'Project name is required'),
+  name: z.string().trim().min(1, 'Project name is required').max(255),
 })
 
 const router = Router()
@@ -27,7 +27,7 @@ router.get('/', async (_req: Request, res: Response, next: NextFunction) => {
 
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const project = await projectsService.getById(req.params.id)
+    const project = await projectsService.getById(req.params.id as string)
     res.json({ data: project })
   } catch (err) {
     next(err)
@@ -45,7 +45,7 @@ router.post('/', validate(CreateProjectSchema), async (req: Request, res: Respon
 
 router.patch('/:id', validate(UpdateProjectSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const project = await projectsService.update(req.params.id, req.body.name)
+    const project = await projectsService.update(req.params.id as string, req.body.name)
     res.json({ data: project })
   } catch (err) {
     next(err)
@@ -54,7 +54,7 @@ router.patch('/:id', validate(UpdateProjectSchema), async (req: Request, res: Re
 
 router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    await projectsService.delete(req.params.id)
+    await projectsService.delete(req.params.id as string)
     res.status(204).end()
   } catch (err) {
     next(err)

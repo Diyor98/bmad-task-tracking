@@ -4,11 +4,12 @@ import { validate } from '../middleware/validate'
 import { requireAuth } from '../middleware/requireAuth'
 import { authService } from '../services/auth.service'
 import { prisma } from '../lib/prisma'
+import { AppError } from '../lib/AppError'
 
 const RegisterSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  name: z.string().trim().min(1, 'Name is required').max(255),
+  email: z.string().email('Invalid email').max(255),
+  password: z.string().min(6, 'Password must be at least 6 characters').max(128),
 })
 
 const LoginSchema = z.object({
@@ -54,8 +55,7 @@ router.get('/me', requireAuth, async (req: Request, res: Response, next: NextFun
       select: { id: true, name: true, email: true },
     })
     if (!user) {
-      res.status(401).json({ error: { code: 'UNAUTHORIZED', message: 'User not found' } })
-      return
+      return next(new AppError('UNAUTHORIZED', 401, 'User not found'))
     }
     res.json({ data: user })
   } catch (err) {

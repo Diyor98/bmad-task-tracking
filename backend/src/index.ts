@@ -8,6 +8,16 @@ import tasksRoutes from './routes/tasks.routes'
 import commentsRoutes from './routes/comments.routes'
 import statusesRoutes from './routes/statuses.routes'
 import { AppError } from './lib/AppError'
+import { ValidationError } from './middleware/validate'
+
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET environment variable is not set')
+  process.exit(1)
+}
+if (!process.env.DATABASE_URL) {
+  console.error('FATAL: DATABASE_URL environment variable is not set')
+  process.exit(1)
+}
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -29,6 +39,12 @@ app.use('/api/tasks', commentsRoutes)
 
 // Global error handler
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  if (err instanceof ValidationError) {
+    res.status(err.statusCode).json({
+      error: { code: err.code, message: err.message, details: err.details },
+    })
+    return
+  }
   if (err instanceof AppError) {
     res.status(err.statusCode).json({
       error: { code: err.code, message: err.message },
