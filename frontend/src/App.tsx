@@ -4,12 +4,13 @@ import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute'
 import { LoginPage } from '@/features/auth/components/LoginPage'
 import { RegisterPage } from '@/features/auth/components/RegisterPage'
 import { Dashboard } from '@/features/projects/components/Dashboard'
+import { BoardPage } from '@/features/tasks/components/BoardPage'
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen overflow-hidden">
       <AppSidebar />
-      <main className="flex-1 overflow-auto bg-zinc-50">
+      <main className="flex-1 overflow-hidden bg-zinc-50">
         {children}
       </main>
     </div>
@@ -29,7 +30,7 @@ function App() {
               <AppLayout>
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
-                  <Route path="/projects/:id" element={<div className="p-6"><p className="text-sm text-zinc-500">Board view coming soon...</p></div>} />
+                  <Route path="/projects/:id" element={<BoardPage />} />
                 </Routes>
               </AppLayout>
             </ProtectedRoute>
