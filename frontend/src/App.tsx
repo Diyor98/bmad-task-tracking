@@ -3,16 +3,14 @@ import { AppSidebar } from '@/components/AppSidebar'
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute'
 import { LoginPage } from '@/features/auth/components/LoginPage'
 import { RegisterPage } from '@/features/auth/components/RegisterPage'
+import { Dashboard } from '@/features/projects/components/Dashboard'
 
-function DashboardLayout() {
+function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen overflow-hidden">
       <AppSidebar />
       <main className="flex-1 overflow-auto bg-zinc-50">
-        <div className="p-6">
-          <h1 className="text-xl font-semibold text-zinc-900">Dashboard</h1>
-          <p className="mt-2 text-sm text-zinc-500">Your projects will appear here.</p>
-        </div>
+        {children}
       </main>
     </div>
   )
@@ -28,7 +26,12 @@ function App() {
           path="/*"
           element={
             <ProtectedRoute>
-              <DashboardLayout />
+              <AppLayout>
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/projects/:id" element={<div className="p-6"><p className="text-sm text-zinc-500">Board view coming soon...</p></div>} />
+                </Routes>
+              </AppLayout>
             </ProtectedRoute>
           }
         />

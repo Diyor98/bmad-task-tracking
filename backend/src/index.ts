@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import authRoutes from './routes/auth.routes'
 import usersRoutes from './routes/users.routes'
+import projectsRoutes from './routes/projects.routes'
 import { AppError } from './lib/AppError'
 
 const app = express()
@@ -18,6 +19,7 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api/auth', authRoutes)
 app.use('/api/users', usersRoutes)
+app.use('/api/projects', projectsRoutes)
 
 // Global error handler
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
