@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UX Design Directions — bmad-tutorial-1</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f4f4f5; color: #18181b; }
+
+  /* NAV */
+  .nav { background: #18181b; color: white; padding: 16px 32px; display: flex; align-items: center; gap: 24px; position: sticky; top: 0; z-index: 100; }
+  .nav h1 { font-size: 16px; font-weight: 600; }
+  .nav-tabs { display: flex; gap: 4px; margin-left: auto; }
+  .nav-tab { padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; color: #a1a1aa; border: none; background: none; transition: all 0.15s; }
+  .nav-tab:hover { color: white; background: #3f3f46; }
+  .nav-tab.active { background: #4f46e5; color: white; }
+
+  /* SECTION */
+  .section { display: none; padding: 32px; }
+  .section.active { display: block; }
+  .section-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .section-desc { font-size: 14px; color: #71717a; margin-bottom: 28px; }
+
+  /* MOCKUP FRAME */
+  .mockup { background: white; border-radius: 12px; border: 1px solid #e4e4e7; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.07); margin-bottom: 32px; }
+  .mockup-label { background: #f4f4f5; padding: 10px 16px; font-size: 12px; font-weight: 600; color: #71717a; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 1px solid #e4e4e7; }
+
+  /* ===================== */
+  /* DIRECTION 1: CLEAN SPLIT */
+  /* ===================== */
+  .d1-shell { display: flex; height: 580px; }
+  .d1-sidebar { width: 220px; background: #fafafa; border-right: 1px solid #e4e4e7; display: flex; flex-direction: column; flex-shrink: 0; }
+  .d1-logo { padding: 16px; font-size: 14px; font-weight: 700; color: #18181b; border-bottom: 1px solid #e4e4e7; }
+  .d1-sidebar-section { padding: 8px; }
+  .d1-sidebar-label { font-size: 11px; font-weight: 600; color: #a1a1aa; padding: 8px 8px 4px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .d1-project { padding: 7px 10px; border-radius: 6px; font-size: 13px; color: #3f3f46; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+  .d1-project:hover { background: #f4f4f5; }
+  .d1-project.active { background: #eef2ff; color: #4f46e5; font-weight: 500; }
+  .d1-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+  .d1-new-btn { margin: 8px; padding: 7px 10px; border-radius: 6px; font-size: 13px; color: #71717a; cursor: pointer; border: 1px dashed #d4d4d8; text-align: center; }
+  .d1-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .d1-topbar { padding: 14px 20px; border-bottom: 1px solid #e4e4e7; display: flex; align-items: center; gap: 12px; }
+  .d1-topbar h2 { font-size: 16px; font-weight: 600; }
+  .d1-filter { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .d1-filter-btn { padding: 5px 12px; border-radius: 6px; font-size: 12px; border: 1px solid #e4e4e7; background: white; color: #71717a; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+  .d1-filter-btn:hover { background: #f4f4f5; }
+  .d1-board { flex: 1; overflow-x: auto; display: flex; gap: 16px; padding: 20px; background: #fafafa; }
+  .d1-col { width: 240px; flex-shrink: 0; }
+  .d1-col-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .d1-status-chip { padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .chip-todo { background: #f4f4f5; color: #71717a; }
+  .chip-inprogress { background: #eff6ff; color: #3b82f6; }
+  .chip-review { background: #fffbeb; color: #f59e0b; }
+  .chip-done { background: #f0fdf4; color: #22c55e; }
+  .d1-col-count { font-size: 12px; color: #a1a1aa; }
+  .d1-card { background: white; border: 1px solid #e4e4e7; border-radius: 8px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: box-shadow 0.15s; }
+  .d1-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-color: #d4d4d8; }
+  .d1-card-title { font-size: 13px; font-weight: 500; color: #18181b; margin-bottom: 8px; line-height: 1.4; }
+  .d1-card-meta { display: flex; align-items: center; justify-content: space-between; }
+  .d1-avatar { width: 22px; height: 22px; border-radius: 50%; background: #4f46e5; color: white; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+  .d1-avatar.amber { background: #f59e0b; }
+  .d1-avatar.green { background: #22c55e; }
+  .d1-avatar.red { background: #ef4444; }
+  .d1-add-card { padding: 8px; border-radius: 6px; font-size: 12px; color: #a1a1aa; cursor: pointer; text-align: center; border: 1px dashed #e4e4e7; }
+  .d1-add-card:hover { background: white; color: #71717a; }
+
+  /* ===================== */
+  /* DIRECTION 2: TOP NAV */
+  /* ===================== */
+  .d2-shell { height: 580px; display: flex; flex-direction: column; }
+  .d2-topnav { background: white; border-bottom: 1px solid #e4e4e7; padding: 0 24px; display: flex; align-items: center; gap: 0; height: 52px; }
+  .d2-logo { font-size: 15px; font-weight: 700; color: #18181b; margin-right: 32px; }
+  .d2-nav-item { padding: 0 14px; height: 52px; display: flex; align-items: center; font-size: 13px; color: #71717a; cursor: pointer; border-bottom: 2px solid transparent; }
+  .d2-nav-item:hover { color: #18181b; }
+  .d2-nav-item.active { color: #4f46e5; border-bottom-color: #4f46e5; font-weight: 500; }
+  .d2-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .d2-btn { padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .d2-btn-primary { background: #4f46e5; color: white; border: none; }
+  .d2-btn-secondary { background: white; color: #3f3f46; border: 1px solid #e4e4e7; }
+  .d2-subbar { background: #fafafa; border-bottom: 1px solid #e4e4e7; padding: 10px 24px; display: flex; align-items: center; gap: 12px; }
+  .d2-breadcrumb { font-size: 13px; color: #71717a; }
+  .d2-breadcrumb span { color: #18181b; font-weight: 500; }
+  .d2-filter-row { margin-left: auto; display: flex; gap: 8px; }
+  .d2-filter-chip { padding: 4px 12px; border-radius: 20px; font-size: 12px; border: 1px solid #e4e4e7; background: white; color: #71717a; cursor: pointer; }
+  .d2-filter-chip.active { background: #eef2ff; color: #4f46e5; border-color: #c7d2fe; }
+  .d2-board { flex: 1; overflow-x: auto; display: flex; gap: 16px; padding: 20px 24px; background: #fafafa; }
+  .d2-col { width: 250px; flex-shrink: 0; }
+  .d2-col-header { padding: 8px 0; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .d2-col-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #71717a; }
+  .d2-col-count { background: #f4f4f5; color: #71717a; font-size: 11px; padding: 1px 6px; border-radius: 10px; }
+  .d2-card { background: white; border: 1px solid #e4e4e7; border-radius: 8px; padding: 12px; margin-bottom: 8px; cursor: pointer; }
+  .d2-card:hover { border-color: #a5b4fc; }
+  .d2-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .d2-card-title { font-size: 13px; font-weight: 500; color: #18181b; line-height: 1.4; flex: 1; margin-right: 8px; }
+  .d2-card-bottom { display: flex; align-items: center; gap: 6px; }
+  .d2-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-blue { background: #3b82f6; }
+  .dot-amber { background: #f59e0b; }
+  .dot-green { background: #22c55e; }
+  .dot-gray { background: #a1a1aa; }
+  .d2-status-text { font-size: 11px; color: #71717a; }
+  .d2-avatar-sm { width: 20px; height: 20px; border-radius: 50%; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; color: white; margin-left: auto; }
+
+  /* ===================== */
+  /* DIRECTION 3: FOCUSED/WIDE */
+  /* ===================== */
+  .d3-shell { display: flex; height: 580px; }
+  .d3-sidebar { width: 56px; background: #18181b; display: flex; flex-direction: column; align-items: center; padding: 16px 0; gap: 8px; flex-shrink: 0; }
+  .d3-icon-btn { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #71717a; font-size: 16px; }
+  .d3-icon-btn:hover { background: #3f3f46; color: white; }
+  .d3-icon-btn.active { background: #4f46e5; color: white; }
+  .d3-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .d3-header { padding: 16px 24px; display: flex; align-items: center; gap: 16px; border-bottom: 1px solid #e4e4e7; }
+  .d3-project-select { font-size: 18px; font-weight: 700; color: #18181b; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .d3-project-select::after { content: '▾'; font-size: 12px; color: #a1a1aa; }
+  .d3-header-actions { margin-left: auto; display: flex; gap: 8px; }
+  .d3-icon-action { width: 32px; height: 32px; border-radius: 6px; border: 1px solid #e4e4e7; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #71717a; font-size: 14px; }
+  .d3-toolbar { padding: 10px 24px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f4f4f5; }
+  .d3-assignee-filter { display: flex; gap: 4px; align-items: center; }
+  .d3-assignee-chip { padding: 4px 10px; border-radius: 20px; font-size: 12px; border: 1px solid #e4e4e7; background: white; cursor: pointer; color: #71717a; display: flex; align-items: center; gap: 4px; }
+  .d3-assignee-chip.selected { background: #eef2ff; border-color: #c7d2fe; color: #4f46e5; }
+  .d3-view-toggle { margin-left: auto; display: flex; border: 1px solid #e4e4e7; border-radius: 6px; overflow: hidden; }
+  .d3-view-btn { padding: 4px 10px; font-size: 12px; background: white; border: none; cursor: pointer; color: #a1a1aa; }
+  .d3-view-btn.active { background: #4f46e5; color: white; }
+  .d3-board { flex: 1; overflow-x: auto; display: flex; gap: 12px; padding: 16px 24px; background: #fafafa; }
+  .d3-col { width: 260px; flex-shrink: 0; background: #f4f4f5; border-radius: 10px; padding: 12px; }
+  .d3-col-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .d3-col-label { font-size: 12px; font-weight: 600; color: #3f3f46; display: flex; align-items: center; gap: 6px; }
+  .d3-col-badge { background: #e4e4e7; color: #71717a; font-size: 11px; padding: 0 6px; border-radius: 10px; }
+  .d3-card { background: white; border-radius: 8px; padding: 12px; margin-bottom: 8px; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .d3-card:hover { border-color: #c7d2fe; box-shadow: 0 2px 8px rgba(79,70,229,0.08); }
+  .d3-card-title { font-size: 13px; font-weight: 500; color: #18181b; margin-bottom: 10px; line-height: 1.4; }
+  .d3-card-footer { display: flex; align-items: center; justify-content: space-between; }
+  .d3-status-badge { padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; }
+  .d3-avatars { display: flex; }
+  .d3-av { width: 22px; height: 22px; border-radius: 50%; border: 2px solid white; font-size: 9px; font-weight: 700; color: white; display: flex; align-items: center; justify-content: center; margin-left: -6px; }
+  .d3-av:first-child { margin-left: 0; }
+  .d3-add-card { padding: 8px; text-align: center; font-size: 12px; color: #a1a1aa; cursor: pointer; border-radius: 6px; border: 1px dashed #d4d4d8; }
+  .d3-add-card:hover { background: white; }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 24px; margin-bottom: 28px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .legend-label { font-size: 13px; color: #71717a; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <h1>UX Design Directions — Task Tracker</h1>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="show('d1', this)">Direction 1 — Clean Split</button>
+    <button class="nav-tab" onclick="show('d2', this)">Direction 2 — Top Nav</button>
+    <button class="nav-tab" onclick="show('d3', this)">Direction 3 — Focus Wide</button>
+  </div>
+</div>
+
+<!-- ========================= -->
+<!-- DIRECTION 1: CLEAN SPLIT -->
+<!-- ========================= -->
+<div class="section active" id="d1">
+  <div class="section-title">Direction 1 — Clean Split</div>
+  <div class="section-desc">Fixed left sidebar for project navigation + full-width board. Quiet, familiar, task-first. Similar to Linear/GitHub Projects.</div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#a1a1aa"></div><div class="legend-label">To Do</div></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div><div class="legend-label">In Progress</div></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div><div class="legend-label">In Review</div></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div><div class="legend-label">Done</div></div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-label">Project Board View</div>
+    <div class="d1-shell">
+      <!-- Sidebar -->
+      <div class="d1-sidebar">
+        <div class="d1-logo">⬡ TaskFlow</div>
+        <div class="d1-sidebar-section">
+          <div class="d1-sidebar-label">Projects</div>
+          <div class="d1-project active"><div class="d1-dot" style="color:#4f46e5"></div> Frontend Redesign</div>
+          <div class="d1-project"><div class="d1-dot" style="color:#22c55e"></div> API v2</div>
+          <div class="d1-project"><div class="d1-dot" style="color:#f59e0b"></div> Mobile App</div>
+          <div class="d1-new-btn">+ New Project</div>
+        </div>
+      </div>
+      <!-- Main -->
+      <div class="d1-main">
+        <div class="d1-topbar">
+          <h2>Frontend Redesign</h2>
+          <div class="d1-filter">
+            <div class="d1-filter-btn">👤 All members</div>
+            <div class="d1-filter-btn">⚙ Settings</div>
+            <div class="d1-filter-btn" style="background:#4f46e5;color:white;border-color:#4f46e5;">+ Add Task</div>
+          </div>
+        </div>
+        <div class="d1-board">
+          <!-- To Do -->
+          <div class="d1-col">
+            <div class="d1-col-header">
+              <span class="d1-status-chip chip-todo">To Do</span>
+              <span class="d1-col-count">3</span>
+            </div>
+            <div class="d1-card">
+              <div class="d1-card-title">Set up Tailwind config and base tokens</div>
+              <div class="d1-card-meta">
+                <span class="d1-status-chip chip-todo" style="font-size:10px">To Do</span>
+                <div class="d1-avatar">D</div>
+              </div>
+            </div>
+            <div class="d1-card">
+              <div class="d1-card-title">Design landing page hero section</div>
+              <div class="d1-card-meta">
+                <span class="d1-status-chip chip-todo" style="font-size:10px">To Do</span>
+                <div class="d1-avatar amber">Z</div>
+              </div>
+            </div>
+            <div class="d1-card">
+              <div class="d1-card-title">Write copy for onboarding screens</div>
+              <div class="d1-card-meta">
+                <span class="d1-status-chip chip-todo" style="font-size:10px">To Do</span>
+              </div>
+            </div>
+            <div class="d1-add-card">+ Add task</div>
+          </div>
+          <!-- In Progress -->
+          <div class="d1-col">
+            <div class="d1-col-header">
+              <span class="d1-status-chip chip-inprogress">In Progress</span>
+              <span class="d1-col-count">2</span>
+            </div>
+            <div class="d1-card">
+              <div class="d1-card-title">Implement authentication flow (login + register)</div>
+              <div class="d1-card-meta">
+                <span class="d1-status-chip chip-inprogress" style="font-size:10px">In Progress</span>
+                <div class="d1-avatar">D</div>
+              </div>
+            </div>
+            <div class="d1-card">
+              <div class="d1-card-title">Build task board column layout</div>
+              <div class="d1-card-meta">
+                <span class="d1-status-chip chip-inprogress" style="font-size:10px">In Progress</span>
+                <div class="d1-avatar green">B</div>
+              </div>
+            </div>
+            <div class="d1-add-card">+ Add task</div>
+          </div>
+          <!-- In Review -->
+          <div class="d1-col">
+            <div class="d1-col-header">
+              <span class="d1-status-chip chip-review">In Review</span>
+              <span class="d1-col-count">1</span>
+            </div>
+            <div class="d1-card">
+              <div class="d1-card-title">Project CRUD API endpoints</div>
+              <div class="d1-card-meta">
+                <span class="d1-status-chip chip-review" style="font-size:10px">In Review</span>
+                <div class="d1-avatar red">A</div>
+              </div>
+            </div>
+            <div class="d1-add-card">+ Add task</div>
+          </div>
+          <!-- Done -->
+          <div class="d1-col">
+            <div class="d1-col-header">
+              <span class="d1-status-chip chip-done">Done</span>
+              <span class="d1-col-count">2</span>
+            </div>
+            <div class="d1-card" style="opacity:0.6">
+              <div class="d1-card-title">Set up project repository</div>
+              <div class="d1-card-meta">
+                <span class="d1-status-chip chip-done" style="font-size:10px">Done</span>
+                <div class="d1-avatar">D</div>
+              </div>
+            </div>
+            <div class="d1-card" style="opacity:0.6">
+              <div class="d1-card-title">Define data models and DB schema</div>
+              <div class="d1-card-meta">
+                <span class="d1-status-chip chip-done" style="font-size:10px">Done</span>
+                <div class="d1-avatar green">B</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p style="font-size:13px;color:#71717a;margin-top:-16px"><strong>Best for:</strong> Users who want predictable navigation and always know which project they're in. Most familiar pattern.</p>
+</div>
+
+<!-- ========================= -->
+<!-- DIRECTION 2: TOP NAV -->
+<!-- ========================= -->
+<div class="section" id="d2">
+  <div class="section-title">Direction 2 — Top Navigation</div>
+  <div class="section-desc">Horizontal top bar navigation with project tabs. More horizontal space for the board. GitHub-style breadcrumb context.</div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot dot-gray"></div><div class="legend-label">To Do</div></div>
+    <div class="legend-item"><div class="legend-dot dot-blue"></div><div class="legend-label">In Progress</div></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div><div class="legend-label">In Review</div></div>
+    <div class="legend-item"><div class="legend-dot dot-green"></div><div class="legend-label">Done</div></div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-label">Project Board View</div>
+    <div class="d2-shell">
+      <div class="d2-topnav">
+        <div class="d2-logo">⬡ TaskFlow</div>
+        <div class="d2-nav-item active">Board</div>
+        <div class="d2-nav-item">Projects</div>
+        <div class="d2-nav-item">Team</div>
+        <div class="d2-actions">
+          <div class="d2-btn d2-btn-secondary">Settings</div>
+          <div class="d2-btn d2-btn-primary">+ New Task</div>
+        </div>
+      </div>
+      <div class="d2-subbar">
+        <div class="d2-breadcrumb">Projects / <span>Frontend Redesign</span></div>
+        <div class="d2-filter-row">
+          <div class="d2-filter-chip active">All</div>
+          <div class="d2-filter-chip">Diyor</div>
+          <div class="d2-filter-chip">Zara</div>
+          <div class="d2-filter-chip">Bekzod</div>
+          <div class="d2-filter-chip">Amir</div>
+        </div>
+      </div>
+      <div class="d2-board">
+        <!-- To Do -->
+        <div class="d2-col">
+          <div class="d2-col-header">
+            <div class="d2-col-title">To Do</div>
+            <div class="d2-col-count">3</div>
+          </div>
+          <div class="d2-card">
+            <div class="d2-card-top">
+              <div class="d2-card-title">Set up Tailwind config and base tokens</div>
+            </div>
+            <div class="d2-card-bottom">
+              <div class="d2-status-dot dot-gray"></div>
+              <div class="d2-status-text">To Do</div>
+              <div class="d2-avatar-sm" style="background:#4f46e5">D</div>
+            </div>
+          </div>
+          <div class="d2-card">
+            <div class="d2-card-top">
+              <div class="d2-card-title">Design landing page hero section</div>
+            </div>
+            <div class="d2-card-bottom">
+              <div class="d2-status-dot dot-gray"></div>
+              <div class="d2-status-text">To Do</div>
+              <div class="d2-avatar-sm" style="background:#f59e0b">Z</div>
+            </div>
+          </div>
+          <div class="d2-card">
+            <div class="d2-card-top">
+              <div class="d2-card-title">Write copy for onboarding screens</div>
+            </div>
+            <div class="d2-card-bottom">
+              <div class="d2-status-dot dot-gray"></div>
+              <div class="d2-status-text">To Do</div>
+            </div>
+          </div>
+        </div>
+        <!-- In Progress -->
+        <div class="d2-col">
+          <div class="d2-col-header">
+            <div class="d2-col-title">In Progress</div>
+            <div class="d2-col-count">2</div>
+          </div>
+          <div class="d2-card">
+            <div class="d2-card-top">
+              <div class="d2-card-title">Implement authentication flow</div>
+            </div>
+            <div class="d2-card-bottom">
+              <div class="d2-status-dot dot-blue"></div>
+              <div class="d2-status-text">In Progress</div>
+              <div class="d2-avatar-sm" style="background:#4f46e5">D</div>
+            </div>
+          </div>
+          <div class="d2-card">
+            <div class="d2-card-top">
+              <div class="d2-card-title">Build task board column layout</div>
+            </div>
+            <div class="d2-card-bottom">
+              <div class="d2-status-dot dot-blue"></div>
+              <div class="d2-status-text">In Progress</div>
+              <div class="d2-avatar-sm" style="background:#22c55e">B</div>
+            </div>
+          </div>
+        </div>
+        <!-- In Review -->
+        <div class="d2-col">
+          <div class="d2-col-header">
+            <div class="d2-col-title">In Review</div>
+            <div class="d2-col-count">1</div>
+          </div>
+          <div class="d2-card">
+            <div class="d2-card-top">
+              <div class="d2-card-title">Project CRUD API endpoints</div>
+            </div>
+            <div class="d2-card-bottom">
+              <div class="d2-status-dot" style="background:#f59e0b"></div>
+              <div class="d2-status-text">In Review</div>
+              <div class="d2-avatar-sm" style="background:#ef4444">A</div>
+            </div>
+          </div>
+        </div>
+        <!-- Done -->
+        <div class="d2-col">
+          <div class="d2-col-header">
+            <div class="d2-col-title">Done</div>
+            <div class="d2-col-count">2</div>
+          </div>
+          <div class="d2-card" style="opacity:0.55">
+            <div class="d2-card-top">
+              <div class="d2-card-title">Set up project repository</div>
+            </div>
+            <div class="d2-card-bottom">
+              <div class="d2-status-dot dot-green"></div>
+              <div class="d2-status-text">Done</div>
+              <div class="d2-avatar-sm" style="background:#4f46e5">D</div>
+            </div>
+          </div>
+          <div class="d2-card" style="opacity:0.55">
+            <div class="d2-card-top">
+              <div class="d2-card-title">Define data models and DB schema</div>
+            </div>
+            <div class="d2-card-bottom">
+              <div class="d2-status-dot dot-green"></div>
+              <div class="d2-status-text">Done</div>
+              <div class="d2-avatar-sm" style="background:#22c55e">B</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p style="font-size:13px;color:#71717a;margin-top:-16px"><strong>Best for:</strong> Teams who switch between projects frequently and want maximum board width. Feels most like GitHub.</p>
+</div>
+
+<!-- ========================= -->
+<!-- DIRECTION 3: FOCUS WIDE -->
+<!-- ========================= -->
+<div class="section" id="d3">
+  <div class="section-title">Direction 3 — Focus Wide</div>
+  <div class="section-desc">Minimal icon-only sidebar, maximum board real estate. Project switcher in header. Most immersive board experience.</div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#a1a1aa"></div><div class="legend-label">To Do</div></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div><div class="legend-label">In Progress</div></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div><div class="legend-label">In Review</div></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div><div class="legend-label">Done</div></div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-label">Project Board View</div>
+    <div class="d3-shell">
+      <!-- Icon sidebar -->
+      <div class="d3-sidebar">
+        <div style="color:white;font-size:18px;font-weight:700;margin-bottom:8px">⬡</div>
+        <div class="d3-icon-btn active" title="Board">▦</div>
+        <div class="d3-icon-btn" title="Projects">◫</div>
+        <div class="d3-icon-btn" title="Team">◉</div>
+        <div style="margin-top:auto">
+          <div class="d3-icon-btn" title="Settings">⚙</div>
+        </div>
+      </div>
+      <!-- Main -->
+      <div class="d3-main">
+        <div class="d3-header">
+          <div class="d3-project-select">Frontend Redesign</div>
+          <div class="d3-header-actions">
+            <div class="d3-icon-action">⚙</div>
+            <div style="padding:6px 14px;background:#4f46e5;color:white;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer">+ Add Task</div>
+          </div>
+        </div>
+        <div class="d3-toolbar">
+          <div style="font-size:12px;color:#71717a;font-weight:500">Filter by:</div>
+          <div class="d3-assignee-filter">
+            <div class="d3-assignee-chip selected">All</div>
+            <div class="d3-assignee-chip">Diyor</div>
+            <div class="d3-assignee-chip">Zara</div>
+            <div class="d3-assignee-chip">Bekzod</div>
+            <div class="d3-assignee-chip">Amir</div>
+          </div>
+          <div class="d3-view-toggle">
+            <div class="d3-view-btn active">Board</div>
+            <div class="d3-view-btn">List</div>
+          </div>
+        </div>
+        <div class="d3-board">
+          <!-- To Do -->
+          <div class="d3-col">
+            <div class="d3-col-header">
+              <div class="d3-col-label"><div style="width:8px;height:8px;border-radius:50%;background:#a1a1aa"></div>To Do</div>
+              <div class="d3-col-badge">3</div>
+            </div>
+            <div class="d3-card">
+              <div class="d3-card-title">Set up Tailwind config and base tokens</div>
+              <div class="d3-card-footer">
+                <div class="d3-status-badge chip-todo">To Do</div>
+                <div class="d3-avatars"><div class="d3-av" style="background:#4f46e5">D</div></div>
+              </div>
+            </div>
+            <div class="d3-card">
+              <div class="d3-card-title">Design landing page hero section</div>
+              <div class="d3-card-footer">
+                <div class="d3-status-badge chip-todo">To Do</div>
+                <div class="d3-avatars"><div class="d3-av" style="background:#f59e0b">Z</div></div>
+              </div>
+            </div>
+            <div class="d3-card">
+              <div class="d3-card-title">Write copy for onboarding screens</div>
+              <div class="d3-card-footer">
+                <div class="d3-status-badge chip-todo">To Do</div>
+                <div class="d3-avatars"></div>
+              </div>
+            </div>
+            <div class="d3-add-card">+ Add task</div>
+          </div>
+          <!-- In Progress -->
+          <div class="d3-col">
+            <div class="d3-col-header">
+              <div class="d3-col-label"><div style="width:8px;height:8px;border-radius:50%;background:#3b82f6"></div>In Progress</div>
+              <div class="d3-col-badge">2</div>
+            </div>
+            <div class="d3-card">
+              <div class="d3-card-title">Implement authentication flow (login + register)</div>
+              <div class="d3-card-footer">
+                <div class="d3-status-badge chip-inprogress">In Progress</div>
+                <div class="d3-avatars"><div class="d3-av" style="background:#4f46e5">D</div></div>
+              </div>
+            </div>
+            <div class="d3-card">
+              <div class="d3-card-title">Build task board column layout</div>
+              <div class="d3-card-footer">
+                <div class="d3-status-badge chip-inprogress">In Progress</div>
+                <div class="d3-avatars"><div class="d3-av" style="background:#22c55e">B</div></div>
+              </div>
+            </div>
+            <div class="d3-add-card">+ Add task</div>
+          </div>
+          <!-- In Review -->
+          <div class="d3-col">
+            <div class="d3-col-header">
+              <div class="d3-col-label"><div style="width:8px;height:8px;border-radius:50%;background:#f59e0b"></div>In Review</div>
+              <div class="d3-col-badge">1</div>
+            </div>
+            <div class="d3-card">
+              <div class="d3-card-title">Project CRUD API endpoints</div>
+              <div class="d3-card-footer">
+                <div class="d3-status-badge chip-review">In Review</div>
+                <div class="d3-avatars"><div class="d3-av" style="background:#ef4444">A</div></div>
+              </div>
+            </div>
+            <div class="d3-add-card">+ Add task</div>
+          </div>
+          <!-- Done -->
+          <div class="d3-col">
+            <div class="d3-col-header">
+              <div class="d3-col-label"><div style="width:8px;height:8px;border-radius:50%;background:#22c55e"></div>Done</div>
+              <div class="d3-col-badge">2</div>
+            </div>
+            <div class="d3-card" style="opacity:0.5">
+              <div class="d3-card-title">Set up project repository</div>
+              <div class="d3-card-footer">
+                <div class="d3-status-badge chip-done">Done</div>
+                <div class="d3-avatars"><div class="d3-av" style="background:#4f46e5">D</div></div>
+              </div>
+            </div>
+            <div class="d3-card" style="opacity:0.5">
+              <div class="d3-card-title">Define data models and DB schema</div>
+              <div class="d3-card-footer">
+                <div class="d3-status-badge chip-done">Done</div>
+                <div class="d3-avatars"><div class="d3-av" style="background:#22c55e">B</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p style="font-size:13px;color:#71717a;margin-top:-16px"><strong>Best for:</strong> Teams who live in the board all day and want every pixel on tasks. Cleanest, most focused layout.</p>
+</div>
+
+<script>
+function show(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
