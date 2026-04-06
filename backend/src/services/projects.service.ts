@@ -2,10 +2,10 @@ import { prisma } from '../lib/prisma'
 import { AppError } from '../lib/AppError'
 
 const DEFAULT_STATUSES = [
-  { name: 'To Do', color: 'zinc-400', order: 0 },
-  { name: 'In Progress', color: 'blue-500', order: 1 },
-  { name: 'In Review', color: 'amber-500', order: 2 },
-  { name: 'Done', color: 'green-500', order: 3 },
+  { name: 'To Do', color: 'zinc-400', order: 0, isDefault: true },
+  { name: 'In Progress', color: 'blue-500', order: 1, isDefault: true },
+  { name: 'In Review', color: 'amber-500', order: 2, isDefault: true },
+  { name: 'Done', color: 'green-500', order: 3, isDefault: true },
 ]
 
 export const projectsService = {

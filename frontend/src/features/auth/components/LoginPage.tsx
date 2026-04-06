@@ -38,12 +38,13 @@ export function LoginPage() {
     ? login.error.response?.data?.error?.message
     : login.error?.message
 
+  const loginReset = login.reset
   useEffect(() => {
     if (apiError) {
-      const timer = setTimeout(() => login.reset(), 4000)
+      const timer = setTimeout(() => loginReset(), 4000)
       return () => clearTimeout(timer)
     }
-  }, [apiError, login])
+  }, [apiError, loginReset])
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50">

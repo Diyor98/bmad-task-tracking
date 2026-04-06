@@ -5,3 +5,11 @@ import { PrismaClient } from '../generated/prisma/client'
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL })
 const adapter = new PrismaPg(pool)
 export const prisma = new PrismaClient({ adapter })
+
+async function shutdown() {
+  await prisma.$disconnect()
+  await pool.end()
+}
+
+process.on('SIGTERM', shutdown)
+process.on('SIGINT', shutdown)

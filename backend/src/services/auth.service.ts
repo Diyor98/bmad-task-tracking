@@ -1,13 +1,15 @@
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+import { Prisma } from '../generated/prisma/client'
 import { prisma } from '../lib/prisma'
 import { AppError } from '../lib/AppError'
 
 const BCRYPT_ROUNDS = 12
+const JWT_SECRET = process.env.JWT_SECRET!
 
 function signToken(userId: string, email: string): string {
   const expiresIn = (process.env.JWT_EXPIRY || '7d') as string & jwt.SignOptions['expiresIn']
-  return jwt.sign({ userId, email }, process.env.JWT_SECRET!, { expiresIn })
+  return jwt.sign({ userId, email }, JWT_SECRET, { expiresIn })
 }
 
 export const authService = {
@@ -19,13 +21,19 @@ export const authService = {
     }
 
     const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS)
-    const user = await prisma.user.create({
-      data: { name, email, password: hashedPassword },
-      select: { id: true, name: true, email: true },
-    })
-
-    const token = signToken(user.id, user.email)
-    return { user, token }
+    try {
+      const user = await prisma.user.create({
+        data: { name, email, password: hashedPassword },
+        select: { id: true, name: true, email: true },
+      })
+      const token = signToken(user.id, user.email)
+      return { user, token }
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+        throw new AppError('CONFLICT', 409, 'An account with this email already exists')
+      }
+      throw err
+    }
   },
 
   async login(email: string, password: string) {

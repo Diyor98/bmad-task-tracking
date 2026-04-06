@@ -8,13 +8,13 @@ import { AppError } from '../lib/AppError'
 
 const RegisterSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(255),
-  email: z.string().email('Invalid email').max(255),
+  email: z.string().trim().email('Invalid email').max(255),
   password: z.string().min(6, 'Password must be at least 6 characters').max(128),
 })
 
 const LoginSchema = z.object({
-  email: z.string().email('Invalid email'),
-  password: z.string().min(1, 'Password is required'),
+  email: z.string().trim().email('Invalid email').max(255),
+  password: z.string().min(1, 'Password is required').max(128),
 })
 
 const router = Router()
@@ -69,11 +69,14 @@ router.post('/logout', (_req: Request, res: Response) => {
 })
 
 function parseDuration(dur: string): number {
-  const match = dur.match(/^(\d+)([smhd])$/)
-  if (!match) return 7 * 24 * 60 * 60 * 1000
+  const match = dur.match(/^(\d+)([smhdw])$/)
+  if (!match) {
+    console.warn(`Invalid JWT_EXPIRY format "${dur}", defaulting to 7d`)
+    return 7 * 24 * 60 * 60 * 1000
+  }
   const val = parseInt(match[1])
   const unit = match[2]
-  const multipliers: Record<string, number> = { s: 1000, m: 60000, h: 3600000, d: 86400000 }
+  const multipliers: Record<string, number> = { s: 1000, m: 60000, h: 3600000, d: 86400000, w: 604800000 }
   return val * (multipliers[unit] || 86400000)
 }
 

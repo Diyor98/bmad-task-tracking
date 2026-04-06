@@ -12,7 +12,7 @@ const CreateStatusSchema = z.object({
 const UpdateStatusSchema = z.object({
   name: z.string().trim().min(1).max(100).optional(),
   color: z.string().trim().min(1).max(50).optional(),
-})
+}).refine((d) => d.name || d.color, { message: 'At least one field required' })
 
 const router = Router()
 
@@ -38,7 +38,7 @@ router.post('/:projectId/statuses', validate(CreateStatusSchema), async (req: Re
 
 router.patch('/:projectId/statuses/:id', validate(UpdateStatusSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const status = await statusesService.update(req.params.id as string, req.body)
+    const status = await statusesService.update(req.params.id as string, req.params.projectId as string, req.body)
     res.json({ data: status })
   } catch (err) {
     next(err)
@@ -47,7 +47,7 @@ router.patch('/:projectId/statuses/:id', validate(UpdateStatusSchema), async (re
 
 router.delete('/:projectId/statuses/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    await statusesService.delete(req.params.id as string)
+    await statusesService.delete(req.params.id as string, req.params.projectId as string)
     res.status(204).end()
   } catch (err) {
     next(err)

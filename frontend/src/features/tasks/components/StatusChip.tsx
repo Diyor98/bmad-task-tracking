@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,16 +23,15 @@ interface Props {
   status: Status
   statuses: Status[]
   onStatusChange: (statusId: string) => void
+  isPending?: boolean
 }
 
-export function StatusChip({ status, statuses, onStatusChange }: Props) {
-  const [updating, setUpdating] = useState(false)
-
+export function StatusChip({ status, statuses, onStatusChange, isPending }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className={`inline-flex items-center gap-1.5 rounded-full border border-zinc-200 px-2.5 py-0.5 text-xs font-medium text-zinc-700 transition-opacity hover:border-zinc-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${updating ? 'opacity-60' : ''}`}
+          className={`inline-flex items-center gap-1.5 rounded-full border border-zinc-200 px-2.5 py-0.5 text-xs font-medium text-zinc-700 transition-opacity hover:border-zinc-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${isPending ? 'opacity-60' : ''}`}
           onClick={(e) => e.stopPropagation()}
         >
           <span className={`h-2 w-2 rounded-full ${colorMap[status.color] || 'bg-zinc-400'}`} />
@@ -46,9 +44,7 @@ export function StatusChip({ status, statuses, onStatusChange }: Props) {
             key={s.id}
             onClick={() => {
               if (s.id !== status.id) {
-                setUpdating(true)
                 onStatusChange(s.id)
-                setTimeout(() => setUpdating(false), 300)
               }
             }}
           >

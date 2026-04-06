@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/apiClient'
@@ -54,7 +54,7 @@ export function BoardPage() {
   })
 
   const { data: allProjects } = useProjects()
-  const updateTask = useUpdateTask(projectId!)
+  const updateTask = useUpdateTask(projectId!, project?.statuses)
   const deleteTask = useDeleteTask(projectId!)
 
   const selectedTask = useMemo(
@@ -73,11 +73,26 @@ export function BoardPage() {
     return users.filter((u) => ids.has(u.id))
   }, [tasks, users])
 
+  const [statusError, setStatusError] = useState<string | null>(null)
+
   useEffect(() => {
     if (selectedTaskId && !tasksLoading && tasks && !selectedTask) {
       setSearchParams({})
     }
   }, [selectedTaskId, tasksLoading, tasks, selectedTask, setSearchParams])
+
+  useEffect(() => {
+    if (statusError) {
+      const timer = setTimeout(() => setStatusError(null), 4000)
+      return () => clearTimeout(timer)
+    }
+  }, [statusError])
+
+  const handleStatusChange = useCallback((taskId: string, statusId: string) => {
+    updateTask.mutate({ id: taskId, statusId }, {
+      onError: () => setStatusError("Couldn't save — try again"),
+    })
+  }, [updateTask])
 
   function openTask(taskId: string) {
     setSearchParams({ task: taskId })
@@ -111,6 +126,11 @@ export function BoardPage() {
 
   return (
     <div className="flex h-full">
+      {statusError && (
+        <div className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 rounded-md bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700 shadow-md">
+          {statusError}
+        </div>
+      )}
       <div className="flex-1 overflow-auto p-6">
         {/* Header with project switcher */}
         <div className="mb-4 flex items-center gap-2">
@@ -164,7 +184,7 @@ export function BoardPage() {
               status={status}
               tasks={(filteredTasks || []).filter((t) => t.statusId === status.id)}
               allStatuses={project.statuses}
-              onStatusChange={(taskId, statusId) => updateTask.mutate({ id: taskId, statusId })}
+              onStatusChange={handleStatusChange}
               onTaskClick={openTask}
               onTaskDelete={(taskId) => deleteTask.mutate(taskId)}
               onAddTask={(statusId) => setCreateForStatus(statusId)}

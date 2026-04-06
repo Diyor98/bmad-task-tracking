@@ -7,16 +7,16 @@ import { AppError } from '../lib/AppError'
 
 const CreateTaskSchema = z.object({
   title: z.string().trim().min(1, 'Title is required').max(255),
-  description: z.string().max(10000).optional(),
+  description: z.string().trim().max(10000).optional(),
   projectId: z.string().min(1),
   statusId: z.string().min(1),
 })
 
 const UpdateTaskSchema = z.object({
   title: z.string().trim().min(1).max(255).optional(),
-  description: z.string().max(10000).optional(),
-  statusId: z.string().optional(),
-  assigneeId: z.string().nullable().optional(),
+  description: z.string().trim().max(10000).optional().nullable(),
+  statusId: z.string().min(1).optional(),
+  assigneeId: z.string().min(1).nullable().optional(),
 })
 
 const router = Router()

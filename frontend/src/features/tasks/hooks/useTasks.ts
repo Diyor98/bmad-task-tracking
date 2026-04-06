@@ -53,7 +53,7 @@ export function useCreateTask() {
   })
 }
 
-export function useUpdateTask(projectId: string) {
+export function useUpdateTask(projectId: string, statuses?: { id: string; name: string; color: string; order: number }[]) {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -71,7 +71,12 @@ export function useUpdateTask(projectId: string) {
           if (newData.statusId && newData.statusId !== t.statusId) {
             const allTasks = old || []
             const statusSource = allTasks.find((task) => task.statusId === newData.statusId)
-            if (statusSource) updated.status = statusSource.status
+            if (statusSource) {
+              updated.status = statusSource.status
+            } else if (statuses) {
+              const s = statuses.find((s) => s.id === newData.statusId)
+              if (s) updated.status = s
+            }
           }
           return updated
         })

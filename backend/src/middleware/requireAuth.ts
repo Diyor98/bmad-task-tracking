@@ -15,6 +15,8 @@ declare global {
   }
 }
 
+const JWT_SECRET = process.env.JWT_SECRET!
+
 export const requireAuth = (req: Request, _res: Response, next: NextFunction) => {
   const token = req.cookies?.token
 
@@ -23,7 +25,7 @@ export const requireAuth = (req: Request, _res: Response, next: NextFunction) =>
   }
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload
+    const payload = jwt.verify(token, JWT_SECRET) as JwtPayload
     req.user = payload
     next()
   } catch {

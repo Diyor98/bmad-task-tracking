@@ -38,12 +38,13 @@ export function RegisterPage() {
     ? register.error.response?.data?.error?.message
     : register.error?.message
 
+  const registerReset = register.reset
   useEffect(() => {
     if (apiError) {
-      const timer = setTimeout(() => register.reset(), 4000)
+      const timer = setTimeout(() => registerReset(), 4000)
       return () => clearTimeout(timer)
     }
-  }, [apiError, register])
+  }, [apiError, registerReset])
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50">

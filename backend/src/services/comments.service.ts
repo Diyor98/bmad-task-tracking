@@ -3,6 +3,10 @@ import { AppError } from '../lib/AppError'
 
 export const commentsService = {
   async listByTask(taskId: string) {
+    const task = await prisma.task.findUnique({ where: { id: taskId } })
+    if (!task) {
+      throw new AppError('NOT_FOUND', 404, 'Task not found')
+    }
     return prisma.comment.findMany({
       where: { taskId },
       include: {

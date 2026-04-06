@@ -11,9 +11,8 @@ interface Status {
   name: string
   color: string
   order: number
+  isDefault?: boolean
 }
-
-const DEFAULT_NAMES = ['To Do', 'In Progress', 'In Review', 'Done']
 
 interface Props {
   projectId: string
@@ -97,7 +96,7 @@ export function StatusSettingsPanel({ projectId, statuses, onClose }: Props) {
                   {status.name}
                 </span>
               )}
-              {!DEFAULT_NAMES.includes(status.name) && editingId !== status.id && (
+              {!status.isDefault && editingId !== status.id && (
                 <Button
                   variant="ghost"
                   size="icon"

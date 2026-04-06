@@ -21,7 +21,7 @@ export function AppSidebar() {
             <TooltipPrimitive.Root key={label}>
               <TooltipPrimitive.Trigger
                 aria-label={label}
-                className={`p-2 rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${isActive ? 'text-white bg-zinc-800' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
+                className={`p-2 rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${isActive ? 'text-white bg-indigo-600' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
                 onClick={() => navigate(path)}
               >
                 <Icon size={20} />

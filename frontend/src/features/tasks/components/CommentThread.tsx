@@ -4,11 +4,13 @@ import { Button } from '@/components/ui/button'
 import { useComments, useCreateComment } from '../hooks/useComments'
 
 function getInitials(name: string): string {
-  return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+  if (!name.trim()) return '?'
+  return name.split(' ').filter(Boolean).map((n) => n[0]).join('').toUpperCase().slice(0, 2)
 }
 
 function relativeTime(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
+  if (diff < 0) return 'just now'
   const minutes = Math.floor(diff / 60000)
   if (minutes < 1) return 'just now'
   if (minutes < 60) return `${minutes}m ago`
