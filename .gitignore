@@ -41,6 +41,11 @@ docker-compose.override.yml
 coverage/
 */coverage/
 
+# Playwright
+e2e/test-results/
+e2e/playwright-report/
+e2e/blob-report/
+
 # Misc
 .cache/
 *.pid
