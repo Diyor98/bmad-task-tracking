@@ -25,16 +25,11 @@ interface Props {
   onUpdate: (data: { title?: string; description?: string; statusId?: string; assigneeId?: string | null }) => void
 }
 
-export function TaskDetailPanel({ task, statuses, users, onClose, onUpdate }: Props) {
+function TaskDetailPanelInner({ task, statuses, users, onClose, onUpdate }: Props) {
   const [editingTitle, setEditingTitle] = useState(false)
   const [title, setTitle] = useState(task.title)
   const [editingDesc, setEditingDesc] = useState(false)
   const [description, setDescription] = useState(task.description || '')
-
-  useEffect(() => {
-    setTitle(task.title)
-    setDescription(task.description || '')
-  }, [task.id, task.title, task.description])
 
   useEffect(() => {
     function handleEscape(e: KeyboardEvent) {
@@ -141,4 +136,8 @@ export function TaskDetailPanel({ task, statuses, users, onClose, onUpdate }: Pr
       </div>
     </div>
   )
+}
+
+export function TaskDetailPanel(props: Props) {
+  return <TaskDetailPanelInner key={props.task.id} {...props} />
 }

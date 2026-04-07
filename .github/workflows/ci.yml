@@ -98,7 +98,7 @@ jobs:
           JWT_SECRET: ci-test-secret
           JWT_EXPIRY: 7d
           PORT: 3000
-          FRONTEND_URL: http://localhost:5173
+          FRONTEND_URL: http://localhost:5174
 
       - name: Install frontend dependencies
         run: npm ci
@@ -107,6 +107,8 @@ jobs:
       - name: Start frontend
         run: npm run dev -- --host 0.0.0.0 --port 5174 &
         working-directory: frontend
+        env:
+          VITE_API_TARGET: http://localhost:3000
 
       - name: Wait for services
         run: |
