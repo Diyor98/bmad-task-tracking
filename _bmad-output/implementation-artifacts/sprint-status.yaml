@@ -1,5 +1,5 @@
 # generated: 2026-04-03
-# last_updated: 2026-04-06
+# last_updated: 2026-04-07
 # project: bmad-tutorial-1
 # project_key: NOKEY
 # tracking_system: file-system
@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-04-03
-last_updated: 2026-04-06T00:00:00.000Z
+last_updated: 2026-04-07T00:00:00.000Z
 project: bmad-tutorial-1
 project_key: NOKEY
 tracking_system: file-system
@@ -84,3 +84,33 @@ development_status:
   6-2-assignee-filter-bar: done
   6-3-task-comments: done
   epic-6-retrospective: optional
+
+  # ── Phase 1 Retrospective ───────────────────────────────────────────────
+  # phase-1-retrospective: done (retrospective-2026-04-06.md)
+
+  # ════════════════════════════════════════════════════════════════════════
+  # PHASE 2: Growth Features (Sprint Change Proposal 2026-04-07)
+  # ════════════════════════════════════════════════════════════════════════
+
+  # ── Epic 7: Board Enhancements ──────────────────────────────────────────
+  epic-7: backlog
+  7-1-drag-and-drop-task-reordering: backlog
+  7-2-task-search-and-multi-filter: backlog
+  epic-7-retrospective: optional
+
+  # ── Epic 8: Task Enrichment ─────────────────────────────────────────────
+  epic-8: backlog
+  8-1-due-dates-and-priority-levels: backlog
+  8-2-file-attachments: backlog
+  epic-8-retrospective: optional
+
+  # ── Epic 9: Notifications & Real-Time ───────────────────────────────────
+  epic-9: backlog
+  9-1-in-app-notifications: backlog
+  9-2-real-time-board-updates-via-sse: backlog
+  epic-9-retrospective: optional
+
+  # ── Epic 10: Activity Log ──────────────────────────────────────────────
+  epic-10: backlog
+  10-1-task-activity-tracking: backlog
+  epic-10-retrospective: optional
