@@ -16,6 +16,9 @@ COPY tsconfig.json ./
 COPY src ./src
 RUN npx tsc
 
+# Prune dev dependencies after build
+RUN npm prune --omit=dev
+
 # Stage 2: Production
 FROM node:22-alpine
 
@@ -23,15 +26,19 @@ RUN apk upgrade --no-cache
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci --omit=dev
+# Copy production node_modules (with prisma runtime) from builder
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
 
 # Copy Prisma schema, migrations, and config for migrate deploy
 COPY prisma ./prisma
 COPY prisma.config.ts ./
 
-# Copy compiled JS (includes generated Prisma client in dist/generated/)
+# Copy compiled JS
 COPY --from=builder /app/dist ./dist
+
+# Copy generated Prisma client source (runtime needs these)
+COPY --from=builder /app/src/generated ./src/generated
 
 ENV NODE_ENV=production
 EXPOSE 3000
