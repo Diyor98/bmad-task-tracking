@@ -33,6 +33,7 @@ Railway does **not** support docker-compose. You deploy each service separately.
 1. Inside the project, click **+ New** → **Database** → **Add PostgreSQL**
 2. Railway provisions a managed Postgres instance automatically
 3. Click the Postgres service → **Variables** tab → note the `DATABASE_URL` (you'll reference it later)
+4. The Postgres service name matters — if Railway names it something other than "Postgres", adjust the variable reference in Step 3 accordingly (e.g. `${{PostgreSQL.DATABASE_URL}}`)
 
 ### Step 3: Deploy the Backend
 
@@ -49,9 +50,12 @@ Railway does **not** support docker-compose. You deploy each service separately.
    NODE_ENV        = production
    FRONTEND_URL    = https://your-frontend.up.railway.app  (update after Step 4)
    ```
-4. Go to **Settings** → **Networking** → **Generate Domain** (for backend, optional — only needed for debugging)
-5. Note the **Private Networking** hostname shown under Networking (e.g. `backend.railway.internal`). The frontend will use this.
-6. Railway auto-deploys. The backend Dockerfile runs `prisma migrate deploy` on startup, so the database schema is created automatically.
+4. Go to **Settings** → **Networking** → **Generate Domain** → enter port **3000** → click Generate
+   - This is optional (only needed for debugging the backend directly), but useful for initial testing
+5. Under **Networking** → **Private Networking**, note the hostname (e.g. `backend.railway.internal`). The frontend will use this to proxy API requests.
+   - **Important:** Private networking requires both services to be in the same Railway project. The hostname format is typically `<service-name>.railway.internal`.
+6. Railway auto-deploys on each push to main. The backend Dockerfile runs `prisma migrate deploy` on startup, so the database schema is created automatically.
+7. **Wait for the backend to deploy successfully** before proceeding to Step 4. Check the deploy logs — you should see "Backend running on port 3000".
 
 ### Step 4: Deploy the Frontend
 
@@ -67,8 +71,9 @@ Railway does **not** support docker-compose. You deploy each service separately.
    Replace `backend.railway.internal` with the actual private hostname from Step 3.5.
 
    **Do NOT set `PORT`** — Railway injects it automatically. The nginx config reads `${PORT}` at startup via envsubst.
-4. Go to **Settings** → **Networking** → **Generate Domain**
+4. Go to **Settings** → **Networking** → **Generate Domain** → enter port **80** → click Generate
    - This gives you a public URL like `https://bmad-frontend-production.up.railway.app`
+   - Port **80** is what nginx listens on by default in the Dockerfile
 
 ### Step 5: Update FRONTEND_URL on Backend
 
@@ -97,6 +102,10 @@ Railway does **not** support docker-compose. You deploy each service separately.
 | CORS errors in browser | `FRONTEND_URL` on the backend must exactly match the browser URL (including `https://`). |
 | "Relation does not exist" errors | Migration didn't run. Check backend deploy logs for `prisma migrate deploy` output. SSH into the service and run it manually if needed. |
 | Frontend shows blank white page | Check that `Dockerfile.prod` is used (not the dev `Dockerfile`). The prod Dockerfile runs `npm run build` + nginx. |
+| Backend logs show nginx starting | Wrong Dockerfile — Railway is building the frontend for the backend service. Verify **Root Directory** is `backend` and **Dockerfile Path** is `Dockerfile.prod` in the backend service settings. |
+| "exports is not defined in ES module scope" | Old Docker cache. Trigger a rebuild — the current Dockerfile injects `{"type":"commonjs"}` in `dist/generated/` to fix Node 22 CJS/ESM resolution. |
+| Domain generation asks for port | Enter **80** for frontend (nginx), **3000** for backend (Express). |
+| Private networking not working | Both services must be in the **same Railway project**. Check the backend service's Networking tab for the exact private hostname. |
 
 **Estimated time:** 15–20 minutes
 **Cost:** Free trial with $5 credit, then ~$5/mo
