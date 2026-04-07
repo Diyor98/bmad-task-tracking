@@ -14,7 +14,7 @@ export function RegisterPage() {
     const result = RegisterSchema.shape[field].safeParse(form[field])
     setFieldErrors((prev) => ({
       ...prev,
-      [field]: result.success ? undefined : result.error.errors[0].message,
+      [field]: result.success ? undefined : result.error.issues[0].message,
     }))
   }
 
