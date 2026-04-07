@@ -6,7 +6,7 @@ test.describe('Projects', () => {
     await registerAndLogin(page)
     await page.goto('/')
 
-    await page.getByRole('button', { name: /new project/i }).click()
+    await page.getByRole('button', { name: /new project/i }).first().click()
     await page.getByPlaceholder(/project name/i).fill('My First Project')
     await page.getByRole('button', { name: /create/i }).click()
 
