@@ -7,7 +7,7 @@ test.describe('Projects', () => {
     await page.goto('/')
 
     await page.getByRole('button', { name: /new project/i }).first().click()
-    await page.getByPlaceholder(/project name/i).fill('My First Project')
+    await page.getByLabel(/project name/i).fill('My First Project')
     await page.getByRole('button', { name: /create/i }).click()
 
     // Project card should appear on dashboard

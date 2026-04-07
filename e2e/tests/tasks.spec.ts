@@ -11,7 +11,7 @@ test.describe('Tasks', () => {
     await todoColumn.getByRole('button', { name: /add task/i }).click()
 
     // Fill task title in create dialog
-    await page.getByPlaceholder(/title/i).fill('My First Task')
+    await page.getByLabel(/title/i).fill('My First Task')
     await page.getByRole('button', { name: /create/i }).click()
 
     // Task card should appear in To Do column
