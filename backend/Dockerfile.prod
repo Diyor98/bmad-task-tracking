@@ -17,7 +17,7 @@ COPY src ./src
 RUN npx tsc
 
 # Force CJS for compiled Prisma generated files (Node 22 ESM compat)
-RUN echo '{"type":"commonjs"}' > dist/generated/package.json
+RUN echo '{"type":"commonjs"}' > dist/generated/prisma/package.json
 
 # Prune dev dependencies after build
 RUN npm prune --omit=dev
