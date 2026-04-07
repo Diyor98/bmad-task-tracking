@@ -13,7 +13,7 @@ test.describe('Authentication', () => {
 
     // Should redirect to dashboard
     await page.waitForURL('/')
-    await expect(page.getByText('Dashboard')).toBeVisible()
+    await expect(page.getByText('Projects')).toBeVisible()
   })
 
   test('reject duplicate email registration', async ({ page }) => {
@@ -48,7 +48,7 @@ test.describe('Authentication', () => {
     await page.getByRole('button', { name: 'Log in' }).click()
 
     await page.waitForURL('/')
-    await expect(page.getByText('Dashboard')).toBeVisible()
+    await expect(page.getByText('Projects')).toBeVisible()
   })
 
   test('reject invalid credentials', async ({ page }) => {
@@ -72,7 +72,7 @@ test.describe('Authentication', () => {
 
     // Refresh and verify still authenticated
     await page.reload()
-    await expect(page.getByText('Dashboard')).toBeVisible()
+    await expect(page.getByText('Projects')).toBeVisible()
   })
 
   test('logout clears session', async ({ page }) => {
