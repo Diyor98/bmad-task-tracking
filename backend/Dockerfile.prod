@@ -16,6 +16,9 @@ COPY tsconfig.json ./
 COPY src ./src
 RUN npx tsc
 
+# Force CJS for compiled Prisma generated files (Node 22 ESM compat)
+RUN echo '{"type":"commonjs"}' > dist/generated/package.json
+
 # Prune dev dependencies after build
 RUN npm prune --omit=dev
 
@@ -26,7 +29,7 @@ RUN apk upgrade --no-cache
 
 WORKDIR /app
 
-# Copy production node_modules (with prisma runtime) from builder
+# Copy production node_modules
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 
@@ -34,11 +37,8 @@ COPY --from=builder /app/package*.json ./
 COPY prisma ./prisma
 COPY prisma.config.ts ./
 
-# Copy compiled JS
+# Copy compiled JS (includes generated prisma with CJS package.json)
 COPY --from=builder /app/dist ./dist
-
-# Copy generated Prisma client source (runtime needs these)
-COPY --from=builder /app/src/generated ./src/generated
 
 ENV NODE_ENV=production
 EXPOSE 3000
