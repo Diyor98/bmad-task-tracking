@@ -21,25 +21,85 @@ APP_PORT=80
 
 ## Option 1: Railway (Recommended — Easiest)
 
-1. Go to https://railway.app and sign in with GitHub
-2. Click **New Project** → **Deploy from GitHub Repo**
-3. Select `Diyor98/bmad-task-tracking`
-4. Railway detects the Docker setup. Create three services:
-   - **Postgres**: Add a PostgreSQL plugin (Railway provides managed Postgres)
-   - **Backend**: Point to `backend/Dockerfile.prod`
-   - **Frontend**: Point to `frontend/Dockerfile.prod`
-5. Set environment variables on the backend service:
-   - `DATABASE_URL` — use the Railway-provided Postgres connection string
-   - `JWT_SECRET` — generate a random secret
-   - `JWT_EXPIRY` — `7d`
-   - `NODE_ENV` — `production`
-   - `FRONTEND_URL` — the Railway-generated frontend URL
-6. Set the frontend nginx config to proxy `/api` to the backend service's internal URL
-7. Deploy — Railway builds and runs automatically
-8. Run the database migration: in the backend service shell, run `npx prisma migrate deploy`
+Railway does **not** support docker-compose. You deploy each service separately.
 
-**Estimated time:** 10–15 minutes
-**Cost:** Free tier covers small usage, ~$5/mo after
+### Step 1: Create a new project
+
+1. Go to https://railway.app and sign in with GitHub
+2. Click **New Project** → **Empty Project**
+
+### Step 2: Add PostgreSQL
+
+1. Inside the project, click **+ New** → **Database** → **Add PostgreSQL**
+2. Railway provisions a managed Postgres instance automatically
+3. Click the Postgres service → **Variables** tab → note the `DATABASE_URL` (you'll reference it later)
+
+### Step 3: Deploy the Backend
+
+1. Click **+ New** → **GitHub Repo** → select `Diyor98/bmad-task-tracking`
+2. Go to the new service's **Settings** tab:
+   - **Source** → **Root Directory**: `backend`
+   - **Build** → **Builder**: `Dockerfile`
+   - **Build** → **Dockerfile Path**: `Dockerfile.prod`
+3. Go to the **Variables** tab and add:
+   ```
+   DATABASE_URL    = ${{Postgres.DATABASE_URL}}    (click "Add Reference" to link)
+   JWT_SECRET      = <paste output of: openssl rand -base64 32>
+   JWT_EXPIRY      = 7d
+   NODE_ENV        = production
+   FRONTEND_URL    = https://your-frontend.up.railway.app  (update after Step 4)
+   ```
+4. Go to **Settings** → **Networking** → **Generate Domain** (for backend, optional — only needed for debugging)
+5. Note the **Private Networking** hostname shown under Networking (e.g. `backend.railway.internal`). The frontend will use this.
+6. Railway auto-deploys. The backend Dockerfile runs `prisma migrate deploy` on startup, so the database schema is created automatically.
+
+### Step 4: Deploy the Frontend
+
+1. Click **+ New** → **GitHub Repo** → select `Diyor98/bmad-task-tracking` again
+2. Go to **Settings** tab:
+   - **Source** → **Root Directory**: `frontend`
+   - **Build** → **Builder**: `Dockerfile`
+   - **Build** → **Dockerfile Path**: `Dockerfile.prod`
+3. Go to the **Variables** tab and add:
+   ```
+   BACKEND_URL = http://backend.railway.internal:3000
+   ```
+   Replace `backend.railway.internal` with the actual private hostname from Step 3.5.
+
+   **Do NOT set `PORT`** — Railway injects it automatically. The nginx config reads `${PORT}` at startup via envsubst.
+4. Go to **Settings** → **Networking** → **Generate Domain**
+   - This gives you a public URL like `https://bmad-frontend-production.up.railway.app`
+
+### Step 5: Update FRONTEND_URL on Backend
+
+1. Go back to the backend service → **Variables**
+2. Update `FRONTEND_URL` to the frontend's public domain from Step 4.4:
+   ```
+   FRONTEND_URL = https://bmad-frontend-production.up.railway.app
+   ```
+3. The backend will redeploy automatically with the correct CORS origin
+
+### Step 6: Verify
+
+1. Open the frontend URL in your browser
+2. Register a new user
+3. Create a project — verify 4 default statuses appear
+4. Create a task and change its status
+5. Check the backend health: `https://your-frontend.up.railway.app/api/health` should return `{"data":"ok"}`
+
+### Troubleshooting Railway
+
+| Issue | Fix |
+|-------|-----|
+| "Error creating build plan with Railpack" | You forgot to set Builder to **Dockerfile** in Settings → Build. Railway defaults to Railpack auto-detection. |
+| 502 on frontend `/api/*` routes | Check `BACKEND_URL` on the frontend service. It must use the **private** Railway hostname (`.railway.internal`), not the public URL. |
+| Backend crashes on startup | Check logs — likely `DATABASE_URL` is wrong. Use Railway's variable reference `${{Postgres.DATABASE_URL}}` to auto-link. |
+| CORS errors in browser | `FRONTEND_URL` on the backend must exactly match the browser URL (including `https://`). |
+| "Relation does not exist" errors | Migration didn't run. Check backend deploy logs for `prisma migrate deploy` output. SSH into the service and run it manually if needed. |
+| Frontend shows blank white page | Check that `Dockerfile.prod` is used (not the dev `Dockerfile`). The prod Dockerfile runs `npm run build` + nginx. |
+
+**Estimated time:** 15–20 minutes
+**Cost:** Free trial with $5 credit, then ~$5/mo
 
 ---
 
