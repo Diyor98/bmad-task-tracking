@@ -1,13 +1,15 @@
 import { test, expect } from '@playwright/test'
 import { registerLoginAndCreateProject } from './helpers'
 
+const API_URL = process.env.API_URL || 'http://localhost:3000'
+
 test.describe('Tasks', () => {
   test('create a task from board column @smoke', async ({ page }) => {
     const { project } = await registerLoginAndCreateProject(page)
     await page.goto(`/projects/${project.id}`)
 
     // Click "Add task" in the To Do column
-    const todoColumn = page.locator('div').filter({ hasText: /^To Do/ }).first()
+    const todoColumn = page.getByTestId('column-To Do')
     await todoColumn.getByRole('button', { name: /add task/i }).click()
 
     // Fill task title in create dialog
@@ -23,7 +25,7 @@ test.describe('Tasks', () => {
 
     // Create task via API
     const defaultStatus = project.statuses[0]
-    await page.request.post('http://localhost:3000/api/tasks', {
+    await page.request.post(`${API_URL}/api/tasks`, {
       data: { title: 'Detail Test Task', projectId: project.id, statusId: defaultStatus.id },
     })
 
@@ -37,7 +39,7 @@ test.describe('Tasks', () => {
   test('edit task title from detail panel', async ({ page }) => {
     const { project } = await registerLoginAndCreateProject(page)
     const defaultStatus = project.statuses[0]
-    await page.request.post('http://localhost:3000/api/tasks', {
+    await page.request.post(`${API_URL}/api/tasks`, {
       data: { title: 'Edit Me', projectId: project.id, statusId: defaultStatus.id },
     })
 
@@ -59,7 +61,7 @@ test.describe('Tasks', () => {
   test('delete task with confirmation dialog', async ({ page }) => {
     const { project } = await registerLoginAndCreateProject(page)
     const defaultStatus = project.statuses[0]
-    await page.request.post('http://localhost:3000/api/tasks', {
+    await page.request.post(`${API_URL}/api/tasks`, {
       data: { title: 'Delete Me Task', projectId: project.id, statusId: defaultStatus.id },
     })
 
@@ -83,7 +85,7 @@ test.describe('Tasks', () => {
   test('change task status via status chip dropdown', async ({ page }) => {
     const { project } = await registerLoginAndCreateProject(page)
     const todoStatus = project.statuses.find((s: { name: string }) => s.name === 'To Do')!
-    await page.request.post('http://localhost:3000/api/tasks', {
+    await page.request.post(`${API_URL}/api/tasks`, {
       data: { title: 'Move Me', projectId: project.id, statusId: todoStatus.id },
     })
 
@@ -97,7 +99,7 @@ test.describe('Tasks', () => {
 
     // Task should now appear in the In Progress column
     await page.waitForTimeout(500)
-    const inProgressColumn = page.locator('div').filter({ hasText: /^In Progress/ }).first()
+    const inProgressColumn = page.getByTestId('column-In Progress')
     await expect(inProgressColumn.getByText('Move Me')).toBeVisible()
   })
 })

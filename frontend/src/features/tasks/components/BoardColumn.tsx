@@ -21,7 +21,7 @@ interface Props {
 
 export function BoardColumn({ status, tasks, allStatuses, onStatusChange, onTaskClick, onTaskDelete, onAddTask }: Props) {
   return (
-    <div className="flex min-w-[240px] flex-1 flex-col">
+    <div data-testid={`column-${status.name}`} className="flex min-w-[240px] flex-1 flex-col">
       <div className="mb-3 flex items-center gap-2">
         <h3 className="text-sm font-medium text-zinc-700">{status.name}</h3>
         <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500">{tasks.length}</span>
