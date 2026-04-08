@@ -17,22 +17,22 @@ COPY src ./src
 RUN npx tsc
 
 # Fix extensionless relative imports in compiled Prisma files for ESM
-RUN node -e " \
-  const fs = require('fs'); const path = require('path'); \
-  function fix(dir) { \
-    for (const f of fs.readdirSync(dir, { withFileTypes: true })) { \
-      const p = path.join(dir, f.name); \
-      if (f.isDirectory()) { fix(p); continue; } \
-      if (!f.name.endsWith('.js')) continue; \
-      let src = fs.readFileSync(p, 'utf8'); \
-      const out = src.replace(/(from\s+['\"])(\.\.?\/[^'\"]+)(['\"])/g, (m, pre, spec, q) => \
-        spec.endsWith('.js') ? m : pre + spec + '.js' + q \
-      ); \
-      if (out !== src) fs.writeFileSync(p, out); \
-    } \
-  } \
-  fix('dist/generated'); \
-"
+RUN printf '%s\n' \
+  "import { readFileSync, writeFileSync, readdirSync } from 'node:fs';" \
+  "import { join } from 'node:path';" \
+  "function fix(dir) {" \
+  "  for (const f of readdirSync(dir, { withFileTypes: true })) {" \
+  "    const p = join(dir, f.name);" \
+  "    if (f.isDirectory()) { fix(p); continue; }" \
+  "    if (!f.name.endsWith('.js')) continue;" \
+  "    const src = readFileSync(p, 'utf8');" \
+  "    const out = src.replace(/(from\\s+['\"])(\\.\\.?\\/[^'\"]+)(['\"])/g, (m, pre, spec, q) =>" \
+  "      spec.endsWith('.js') ? m : pre + spec + '.js' + q);" \
+  "    if (out !== src) writeFileSync(p, out);" \
+  "  }" \
+  "}" \
+  "fix('dist/generated');" \
+  > /tmp/fix-esm-imports.mjs && node /tmp/fix-esm-imports.mjs
 
 # Prune dev dependencies after build
 RUN npm prune --omit=dev
