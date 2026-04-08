@@ -1,5 +1,5 @@
-import { prisma } from '../lib/prisma'
-import { AppError } from '../lib/AppError'
+import { prisma } from '../lib/prisma.js'
+import { AppError } from '../lib/AppError.js'
 
 const DEFAULT_STATUSES = [
   { name: 'To Do', color: 'zinc-400', order: 0, isDefault: true },

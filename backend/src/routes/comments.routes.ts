@@ -1,8 +1,8 @@
 import { Router, Request, Response, NextFunction } from 'express'
 import { z } from 'zod'
-import { requireAuth } from '../middleware/requireAuth'
-import { validate } from '../middleware/validate'
-import { commentsService } from '../services/comments.service'
+import { requireAuth } from '../middleware/requireAuth.js'
+import { validate } from '../middleware/validate.js'
+import { commentsService } from '../services/comments.service.js'
 
 const CreateCommentSchema = z.object({
   body: z.string().trim().min(1, 'Comment body is required').max(10000),

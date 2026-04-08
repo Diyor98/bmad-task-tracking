@@ -1,5 +1,5 @@
-import { prisma } from '../lib/prisma'
-import { AppError } from '../lib/AppError'
+import { prisma } from '../lib/prisma.js'
+import { AppError } from '../lib/AppError.js'
 
 export const tasksService = {
   async listByProject(projectId: string) {

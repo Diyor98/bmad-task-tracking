@@ -1,9 +1,9 @@
 import { Router, Request, Response, NextFunction } from 'express'
 import { z } from 'zod'
-import { requireAuth } from '../middleware/requireAuth'
-import { validate } from '../middleware/validate'
-import { tasksService } from '../services/tasks.service'
-import { AppError } from '../lib/AppError'
+import { requireAuth } from '../middleware/requireAuth.js'
+import { validate } from '../middleware/validate.js'
+import { tasksService } from '../services/tasks.service.js'
+import { AppError } from '../lib/AppError.js'
 
 const CreateTaskSchema = z.object({
   title: z.string().trim().min(1, 'Title is required').max(255),

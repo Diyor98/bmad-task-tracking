@@ -1,8 +1,7 @@
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-import { Prisma } from '../generated/prisma/client'
-import { prisma } from '../lib/prisma'
-import { AppError } from '../lib/AppError'
+import { prisma } from '../lib/prisma.js'
+import { AppError } from '../lib/AppError.js'
 
 const BCRYPT_ROUNDS = 12
 const JWT_SECRET = process.env.JWT_SECRET!
@@ -29,7 +28,8 @@ export const authService = {
       const token = signToken(user.id, user.email)
       return { user, token }
     } catch (err) {
-      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      const prismaErr = err as { code?: string; constructor?: { name?: string } }
+      if (prismaErr.constructor?.name === 'PrismaClientKnownRequestError' && prismaErr.code === 'P2002') {
         throw new AppError('CONFLICT', 409, 'An account with this email already exists')
       }
       throw err

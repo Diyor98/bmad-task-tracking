@@ -16,8 +16,23 @@ COPY tsconfig.json ./
 COPY src ./src
 RUN npx tsc
 
-# Force CJS for compiled Prisma generated files (Node 22 ESM compat)
-RUN echo '{"type":"commonjs"}' > dist/generated/prisma/package.json
+# Fix extensionless relative imports in compiled Prisma files for ESM
+RUN node -e " \
+  const fs = require('fs'); const path = require('path'); \
+  function fix(dir) { \
+    for (const f of fs.readdirSync(dir, { withFileTypes: true })) { \
+      const p = path.join(dir, f.name); \
+      if (f.isDirectory()) { fix(p); continue; } \
+      if (!f.name.endsWith('.js')) continue; \
+      let src = fs.readFileSync(p, 'utf8'); \
+      const out = src.replace(/(from\s+['\"])(\.\.?\/[^'\"]+)(['\"])/g, (m, pre, spec, q) => \
+        spec.endsWith('.js') ? m : pre + spec + '.js' + q \
+      ); \
+      if (out !== src) fs.writeFileSync(p, out); \
+    } \
+  } \
+  fix('dist/generated'); \
+"
 
 # Prune dev dependencies after build
 RUN npm prune --omit=dev
@@ -37,7 +52,7 @@ COPY --from=builder /app/package*.json ./
 COPY prisma ./prisma
 COPY prisma.config.ts ./
 
-# Copy compiled JS (includes generated prisma with CJS package.json)
+# Copy compiled JS
 COPY --from=builder /app/dist ./dist
 
 ENV NODE_ENV=production

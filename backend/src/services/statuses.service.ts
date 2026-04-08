@@ -1,5 +1,5 @@
-import { prisma } from '../lib/prisma'
-import { AppError } from '../lib/AppError'
+import { prisma } from '../lib/prisma.js'
+import { AppError } from '../lib/AppError.js'
 
 export const statusesService = {
   async listByProject(projectId: string) {
@@ -59,7 +59,7 @@ export const statusesService = {
       throw new AppError('BAD_REQUEST', 400, 'Cannot delete a default status')
     }
 
-    const fallback = status.project.statuses.find((s) => s.isDefault && s.id !== id)
+    const fallback = status.project.statuses.find((s: { isDefault: boolean; id: string }) => s.isDefault && s.id !== id)
     if (!fallback) {
       throw new AppError('BAD_REQUEST', 400, 'No fallback status available')
     }

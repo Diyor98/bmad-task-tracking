@@ -1,10 +1,10 @@
 import { Router, Request, Response, NextFunction } from 'express'
 import { z } from 'zod'
-import { validate } from '../middleware/validate'
-import { requireAuth } from '../middleware/requireAuth'
-import { authService } from '../services/auth.service'
-import { prisma } from '../lib/prisma'
-import { AppError } from '../lib/AppError'
+import { validate } from '../middleware/validate.js'
+import { requireAuth } from '../middleware/requireAuth.js'
+import { authService } from '../services/auth.service.js'
+import { prisma } from '../lib/prisma.js'
+import { AppError } from '../lib/AppError.js'
 
 const RegisterSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(255),

@@ -1,8 +1,8 @@
 import { Router, Request, Response, NextFunction } from 'express'
 import { z } from 'zod'
-import { requireAuth } from '../middleware/requireAuth'
-import { validate } from '../middleware/validate'
-import { projectsService } from '../services/projects.service'
+import { requireAuth } from '../middleware/requireAuth.js'
+import { validate } from '../middleware/validate.js'
+import { projectsService } from '../services/projects.service.js'
 
 const CreateProjectSchema = z.object({
   name: z.string().trim().min(1, 'Project name is required').max(255),

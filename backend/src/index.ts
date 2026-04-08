@@ -1,14 +1,14 @@
 import express, { Request, Response, NextFunction } from 'express'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
-import authRoutes from './routes/auth.routes'
-import usersRoutes from './routes/users.routes'
-import projectsRoutes from './routes/projects.routes'
-import tasksRoutes from './routes/tasks.routes'
-import commentsRoutes from './routes/comments.routes'
-import statusesRoutes from './routes/statuses.routes'
-import { AppError } from './lib/AppError'
-import { ValidationError } from './middleware/validate'
+import authRoutes from './routes/auth.routes.js'
+import usersRoutes from './routes/users.routes.js'
+import projectsRoutes from './routes/projects.routes.js'
+import tasksRoutes from './routes/tasks.routes.js'
+import commentsRoutes from './routes/comments.routes.js'
+import statusesRoutes from './routes/statuses.routes.js'
+import { AppError } from './lib/AppError.js'
+import { ValidationError } from './middleware/validate.js'
 
 if (!process.env.JWT_SECRET) {
   console.error('FATAL: JWT_SECRET environment variable is not set')

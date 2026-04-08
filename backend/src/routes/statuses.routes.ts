@@ -1,8 +1,8 @@
 import { Router, Request, Response, NextFunction } from 'express'
 import { z } from 'zod'
-import { requireAuth } from '../middleware/requireAuth'
-import { validate } from '../middleware/validate'
-import { statusesService } from '../services/statuses.service'
+import { requireAuth } from '../middleware/requireAuth.js'
+import { validate } from '../middleware/validate.js'
+import { statusesService } from '../services/statuses.service.js'
 
 const CreateStatusSchema = z.object({
   name: z.string().trim().min(1, 'Status name is required').max(100),

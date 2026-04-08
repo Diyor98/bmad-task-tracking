@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { ZodSchema } from 'zod'
-import { AppError } from '../lib/AppError'
+import { AppError } from '../lib/AppError.js'
 
 export class ValidationError extends AppError {
   constructor(public details: Record<string, string[]>) {
