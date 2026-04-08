@@ -16,7 +16,9 @@ COPY tsconfig.json ./
 COPY src ./src
 RUN npx tsc
 
-# Fix extensionless relative imports in compiled Prisma files for ESM
+# Fix relative imports in compiled Prisma files for ESM:
+# - extensionless imports get .js added
+# - .ts imports get replaced with .js
 RUN node -e " \
   const fs = require('fs'); const path = require('path'); \
   function fix(dir) { \
@@ -25,9 +27,11 @@ RUN node -e " \
       if (f.isDirectory()) { fix(p); continue; } \
       if (!f.name.endsWith('.js')) continue; \
       let src = fs.readFileSync(p, 'utf8'); \
-      const out = src.replace(/(from\s+['\"])(\.\.?\/[^'\"]+)(['\"])/g, (m, pre, spec, q) => \
-        spec.endsWith('.js') ? m : pre + spec + '.js' + q \
-      ); \
+      const out = src.replace(/(from\s+['\"])(\.\.?\/[^'\"]+)(['\"])/g, (m, pre, spec, q) => { \
+        if (spec.endsWith('.js')) return m; \
+        if (spec.endsWith('.ts')) return pre + spec.slice(0, -3) + '.js' + q; \
+        return pre + spec + '.js' + q; \
+      }); \
       if (out !== src) fs.writeFileSync(p, out); \
     } \
   } \
