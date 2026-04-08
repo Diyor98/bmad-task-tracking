@@ -9,6 +9,6 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 3000
+EXPOSE ${APP_PORT:-3000}
 
 CMD ["sh", "-c", "npx prisma migrate deploy && npm run dev"]
