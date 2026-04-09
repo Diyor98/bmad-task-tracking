@@ -33,6 +33,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    volumes:
+      - backend_uploads:/app/uploads
     deploy:
       resources:
         limits:
@@ -57,3 +59,4 @@ services:
 
 volumes:
   postgres_data:
+  backend_uploads:

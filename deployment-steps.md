@@ -241,8 +241,23 @@ Railway does **not** support docker-compose. You deploy each service separately.
 
 ---
 
+## Important: File Upload Storage
+
+Phase 2 added file attachments (Story 8.2). Uploaded files are stored on local disk at `/app/uploads` inside the backend container.
+
+**VPS deployment:** The `docker-compose.prod.yml` includes a `backend_uploads` named volume for persistent storage. Files survive container restarts.
+
+**Railway deployment:** Railway containers are ephemeral — local disk is wiped on each deploy. For production use with file attachments, you need either:
+- A Railway volume (available on paid plans) mounted at `/app/uploads`
+- Or switch to S3-compatible storage (not yet implemented — deferred to future story)
+
+For demo/testing purposes, Railway works fine — just know that uploaded files are lost on redeploy.
+
+---
+
 ## Post-Deployment Checklist
 
+**Core (Phase 1):**
 - [ ] App loads at public URL
 - [ ] Registration and login work
 - [ ] Create a project — 4 default statuses appear
@@ -252,6 +267,18 @@ Railway does **not** support docker-compose. You deploy each service separately.
 - [ ] Logout redirects to login
 - [ ] Unauthenticated access redirected to login
 - [ ] HTTPS is active (non-local deployments)
+
+**Phase 2 — Board Enhancements (Epic 7):**
+- [ ] Drag and drop a task to reorder within a column
+- [ ] Search tasks by keyword
+- [ ] Filter by status, priority, and assignee
+
+**Phase 2 — Task Enrichment (Epic 8):**
+- [ ] Set priority and due date on a task
+- [ ] Priority dot and due date badge appear on task card
+- [ ] Upload a file attachment to a task
+- [ ] Download an attachment
+- [ ] Overdue tasks show red date indicator
 
 ## Troubleshooting
 
