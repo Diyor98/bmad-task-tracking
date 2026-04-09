@@ -1,5 +1,5 @@
 # generated: 2026-04-03
-# last_updated: 2026-04-07
+# last_updated: 2026-04-09
 # project: bmad-tutorial-1
 # project_key: NOKEY
 # tracking_system: file-system
@@ -35,13 +35,17 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-04-03
-last_updated: 2026-04-07T00:00:00.000Z
+last_updated: 2026-04-09
 project: bmad-tutorial-1
 project_key: NOKEY
 tracking_system: file-system
 story_location: _bmad-output/implementation-artifacts
 
 development_status:
+  # ════════════════════════════════════════════════════════════════════════
+  # PHASE 1: MVP (Complete)
+  # ════════════════════════════════════════════════════════════════════════
+
   # ── Epic 1: Runnable Application Foundation ──────────────────────────────
   epic-1: done
   1-1-project-scaffold-and-docker-compose-setup: done
@@ -90,18 +94,19 @@ development_status:
 
   # ════════════════════════════════════════════════════════════════════════
   # PHASE 2: Growth Features (Sprint Change Proposal 2026-04-07)
+  # Recommended order: 7 → 8 → 9 → 10
   # ════════════════════════════════════════════════════════════════════════
 
   # ── Epic 7: Board Enhancements ──────────────────────────────────────────
-  epic-7: backlog
-  7-1-drag-and-drop-task-reordering: backlog
-  7-2-task-search-and-multi-filter: backlog
-  epic-7-retrospective: optional
+  epic-7: done
+  7-1-drag-and-drop-task-reordering: done
+  7-2-task-search-and-multi-filter: done
+  epic-7-retrospective: done
 
   # ── Epic 8: Task Enrichment ─────────────────────────────────────────────
-  epic-8: backlog
-  8-1-due-dates-and-priority-levels: backlog
-  8-2-file-attachments: backlog
+  epic-8: done
+  8-1-due-dates-and-priority-levels: done
+  8-2-file-attachments: done
   epic-8-retrospective: optional
 
   # ── Epic 9: Notifications & Real-Time ───────────────────────────────────

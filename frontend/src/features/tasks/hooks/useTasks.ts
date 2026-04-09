@@ -22,10 +22,13 @@ export interface Task {
   projectId: string
   statusId: string
   assigneeId: string | null
+  position: number
+  dueDate: string | null
+  priority: string | null
   createdAt: string
   status: Status
   assignee: User | null
-  _count: { comments: number }
+  _count: { comments: number; attachments: number }
 }
 
 export function useTasks(projectId: string) {
@@ -43,7 +46,7 @@ export function useCreateTask() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (data: { title: string; description?: string; projectId: string; statusId: string }) => {
+    mutationFn: async (data: { title: string; description?: string; projectId: string; statusId: string; dueDate?: string | null; priority?: string | null }) => {
       const res = await apiClient.post<{ data: Task }>('/tasks', data)
       return res.data.data
     },
@@ -57,7 +60,7 @@ export function useUpdateTask(projectId: string, statuses?: { id: string; name: 
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ id, ...data }: { id: string; title?: string; description?: string; statusId?: string; assigneeId?: string | null }) => {
+    mutationFn: async ({ id, ...data }: { id: string; title?: string; description?: string; statusId?: string; assigneeId?: string | null; dueDate?: string | null; priority?: string | null }) => {
       const res = await apiClient.patch<{ data: Task }>(`/tasks/${id}`, data)
       return res.data.data
     },
@@ -81,6 +84,45 @@ export function useUpdateTask(projectId: string, statuses?: { id: string; name: 
           return updated
         })
       )
+      return { previous }
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKeys.tasks.byProject(projectId), context.previous)
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.byProject(projectId) })
+    },
+  })
+}
+
+export function useReorderTask(projectId: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, position }: { id: string; position: number }) => {
+      const res = await apiClient.patch<{ data: Task }>(`/tasks/${id}/reorder`, { position })
+      return res.data.data
+    },
+    onMutate: async ({ id, position }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.tasks.byProject(projectId) })
+      const previous = queryClient.getQueryData<Task[]>(queryKeys.tasks.byProject(projectId))
+      queryClient.setQueryData<Task[]>(queryKeys.tasks.byProject(projectId), (old) => {
+        if (!old) return old
+        const task = old.find((t) => t.id === id)
+        if (!task) return old
+        const columnTasks = old
+          .filter((t) => t.statusId === task.statusId && t.id !== id)
+          .sort((a, b) => a.position - b.position)
+        const clampedPos = Math.max(0, Math.min(position, columnTasks.length))
+        columnTasks.splice(clampedPos, 0, task)
+        const reindexed = new Map(columnTasks.map((t, i) => [t.id, i]))
+        return old.map((t) => {
+          const newPos = reindexed.get(t.id)
+          return newPos !== undefined ? { ...t, position: newPos } : t
+        })
+      })
       return { previous }
     },
     onError: (_err, _vars, context) => {

@@ -13,6 +13,9 @@ export const queryKeys = {
   users: {
     all: ['users'] as const,
   },
+  attachments: {
+    byTask: (taskId: string) => ['attachments', taskId] as const,
+  },
   auth: {
     me: ['auth', 'me'] as const,
   },

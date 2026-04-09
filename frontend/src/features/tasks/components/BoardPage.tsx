@@ -1,16 +1,22 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
+import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, DragOverlay, type DragStartEvent, type DragEndEvent } from '@dnd-kit/core'
+import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { apiClient } from '@/lib/apiClient'
 import { queryKeys } from '@/lib/queryKeys'
-import { useTasks, useUpdateTask, useDeleteTask } from '../hooks/useTasks'
+import { useTasks, useUpdateTask, useDeleteTask, useReorderTask } from '../hooks/useTasks'
+import type { Task } from '../hooks/useTasks'
 import { BoardColumn } from './BoardColumn'
+import { TaskCardOverlay } from './TaskCard'
 import { TaskDetailPanel } from './TaskDetailPanel'
 import { CreateTaskDialog } from './CreateTaskDialog'
 import { useProjects } from '@/features/projects/hooks/useProjects'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { ChevronDown, Settings } from 'lucide-react'
+import { ChevronDown, Settings, Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { StatusSettingsPanel } from './StatusSettingsPanel'
 
 interface Project {
@@ -32,8 +38,12 @@ export function BoardPage() {
 
   const navigate = useNavigate()
   const [createForStatus, setCreateForStatus] = useState<string | null>(null)
-  const [assigneeFilter, setAssigneeFilter] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<Set<string>>(new Set())
+  const [assigneeFilter, setAssigneeFilter] = useState<Set<string>>(new Set())
+  const [priorityFilter, setPriorityFilter] = useState<Set<string>>(new Set())
   const [showStatusSettings, setShowStatusSettings] = useState(false)
+  const [statusError, setStatusError] = useState<string | null>(null)
 
   const { data: project, isLoading: projectLoading } = useQuery({
     queryKey: queryKeys.projects.detail(projectId!),
@@ -56,24 +66,63 @@ export function BoardPage() {
   const { data: allProjects } = useProjects()
   const updateTask = useUpdateTask(projectId!, project?.statuses)
   const deleteTask = useDeleteTask(projectId!)
+  const reorderTask = useReorderTask(projectId!)
+
+  const [activeTask, setActiveTask] = useState<Task | null>(null)
 
   const selectedTask = useMemo(
     () => tasks?.find((t) => t.id === selectedTaskId) ?? null,
     [tasks, selectedTaskId],
   )
 
-  const filteredTasks = useMemo(
-    () => assigneeFilter ? tasks?.filter((t) => t.assigneeId === assigneeFilter) : tasks,
-    [tasks, assigneeFilter],
+  const trimmedSearch = searchQuery.trim()
+  const hasActiveFilters = trimmedSearch !== '' || statusFilter.size > 0 || assigneeFilter.size > 0 || priorityFilter.size > 0
+
+  const filteredTasks = useMemo(() => {
+    if (!tasks) return []
+    const query = trimmedSearch.toLowerCase()
+    return tasks.filter((t) => {
+      if (query && !t.title.toLowerCase().includes(query)) return false
+      if (statusFilter.size > 0 && !statusFilter.has(t.statusId)) return false
+      if (assigneeFilter.size > 0 && !(t.assigneeId && assigneeFilter.has(t.assigneeId))) return false
+      if (priorityFilter.size > 0 && !(priorityFilter.has(t.priority || 'none'))) return false
+      return true
+    })
+  }, [tasks, trimmedSearch, statusFilter, assigneeFilter, priorityFilter])
+
+  const allSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
+  const noSensors = useSensors()
+  const sensors = hasActiveFilters ? noSensors : allSensors
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    const task = tasks?.find((t) => t.id === event.active.id)
+    setActiveTask(task ?? null)
+  }, [tasks])
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    setActiveTask(null)
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const draggedTask = tasks?.find((t) => t.id === active.id)
+    if (!draggedTask) return
+    const columnTasks = (tasks || [])
+      .filter((t) => t.statusId === draggedTask.statusId)
+      .sort((a, b) => a.position - b.position)
+    const overIndex = columnTasks.findIndex((t) => t.id === over.id)
+    if (overIndex === -1) return
+    reorderTask.mutate({ id: draggedTask.id, position: overIndex }, {
+      onError: () => setStatusError("Couldn't save — try again"),
+    })
+  }, [tasks, reorderTask])
 
   const assigneesWithTasks = useMemo(() => {
     if (!tasks || !users) return []
     const ids = new Set(tasks.filter((t) => t.assigneeId).map((t) => t.assigneeId!))
     return users.filter((u) => ids.has(u.id))
   }, [tasks, users])
-
-  const [statusError, setStatusError] = useState<string | null>(null)
 
   useEffect(() => {
     if (selectedTaskId && !tasksLoading && tasks && !selectedTask) {
@@ -93,6 +142,22 @@ export function BoardPage() {
       onError: () => setStatusError("Couldn't save — try again"),
     })
   }, [updateTask])
+
+  function toggleSetItem(setter: React.Dispatch<React.SetStateAction<Set<string>>>, id: string) {
+    setter((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function clearFilters() {
+    setSearchQuery('')
+    setStatusFilter(new Set())
+    setAssigneeFilter(new Set())
+    setPriorityFilter(new Set())
+  }
 
   function openTask(taskId: string) {
     setSearchParams({ task: taskId })
@@ -142,7 +207,7 @@ export function BoardPage() {
               {allProjects?.map((p) => (
                 <DropdownMenuItem
                   key={p.id}
-                  onClick={() => navigate(`/projects/${p.id}`)}
+                  onClick={() => { clearFilters(); navigate(`/projects/${p.id}`) }}
                   className={p.id === projectId ? 'font-semibold' : ''}
                 >
                   {p.name}
@@ -155,42 +220,94 @@ export function BoardPage() {
           </Button>
         </div>
 
-        {/* Assignee Filter Bar */}
-        {assigneesWithTasks.length > 0 && (
-          <div className="mb-4 flex gap-2">
-            <button
-              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${!assigneeFilter ? 'bg-indigo-600 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'}`}
-              onClick={() => setAssigneeFilter(null)}
-            >
-              All
-            </button>
-            {assigneesWithTasks.map((u) => (
+        {/* Search and Filter Bar */}
+        <div className="mb-4 space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+              <Input
+                placeholder="Search tasks..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 bg-zinc-50"
+              />
+            </div>
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" className="text-zinc-500 hover:text-zinc-700" onClick={clearFilters}>
+                <X className="mr-1 h-3.5 w-3.5" /> Clear filters
+              </Button>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-zinc-500">Status:</span>
+            {project.statuses.map((s) => (
               <button
-                key={u.id}
-                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${assigneeFilter === u.id ? 'bg-indigo-600 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'}`}
-                onClick={() => setAssigneeFilter(assigneeFilter === u.id ? null : u.id)}
+                key={s.id}
+                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${statusFilter.has(s.id) ? 'bg-indigo-600 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'}`}
+                onClick={() => toggleSetItem(setStatusFilter, s.id)}
               >
-                {u.name}
+                {s.name}
               </button>
             ))}
+
+            <span className="ml-2 border-l border-zinc-200 pl-2 text-xs font-medium text-zinc-500">Priority:</span>
+            {(['none', 'low', 'medium', 'high', 'urgent'] as const).map((p) => (
+              <button
+                key={p}
+                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${priorityFilter.has(p) ? 'bg-indigo-600 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'}`}
+                onClick={() => toggleSetItem(setPriorityFilter, p)}
+              >
+                {p === 'none' ? 'None' : p.charAt(0).toUpperCase() + p.slice(1)}
+              </button>
+            ))}
+
+            {assigneesWithTasks.length > 0 && (
+              <>
+                <span className="ml-2 border-l border-zinc-200 pl-2 text-xs font-medium text-zinc-500">Assignee:</span>
+                {assigneesWithTasks.map((u) => (
+                  <button
+                    key={u.id}
+                    className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${assigneeFilter.has(u.id) ? 'bg-indigo-600 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'}`}
+                    onClick={() => toggleSetItem(setAssigneeFilter, u.id)}
+                  >
+                    {u.name}
+                  </button>
+                ))}
+              </>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Board Columns */}
-        <div className="flex gap-4 overflow-x-auto pb-4">
-          {project.statuses.map((status) => (
-            <BoardColumn
-              key={status.id}
-              status={status}
-              tasks={(filteredTasks || []).filter((t) => t.statusId === status.id)}
-              allStatuses={project.statuses}
-              onStatusChange={handleStatusChange}
-              onTaskClick={openTask}
-              onTaskDelete={(taskId) => deleteTask.mutate(taskId)}
-              onAddTask={(statusId) => setCreateForStatus(statusId)}
-            />
-          ))}
-        </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          modifiers={[restrictToVerticalAxis]}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="flex gap-4 overflow-x-auto pb-4">
+            {project.statuses.map((status) => (
+              <BoardColumn
+                key={status.id}
+                status={status}
+                tasks={filteredTasks.filter((t) => t.statusId === status.id)}
+                totalTaskCount={(tasks || []).filter((t) => t.statusId === status.id).length}
+                allStatuses={project.statuses}
+                onStatusChange={handleStatusChange}
+                onTaskClick={openTask}
+                onTaskDelete={(taskId) => deleteTask.mutate(taskId)}
+                onAddTask={(statusId) => setCreateForStatus(statusId)}
+              />
+            ))}
+          </div>
+          <DragOverlay>
+            {activeTask ? (
+              <TaskCardOverlay task={activeTask} />
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       </div>
 
       {/* Task Detail Panel */}

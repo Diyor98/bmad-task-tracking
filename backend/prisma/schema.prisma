@@ -15,6 +15,7 @@ model User {
   createdAt DateTime  @default(now())
   tasks     Task[]    @relation("assignee")
   comments  Comment[]
+  uploads   Attachment[]
 }
 
 model Project {
@@ -43,11 +44,15 @@ model Task {
   projectId   String
   statusId    String
   assigneeId  String?
+  position    Int       @default(0)
+  dueDate     DateTime?
+  priority    String?
   createdAt   DateTime  @default(now())
   project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   status      Status    @relation(fields: [statusId], references: [id], onDelete: Restrict)
   assignee    User?     @relation("assignee", fields: [assigneeId], references: [id])
   comments    Comment[]
+  attachments Attachment[]
 }
 
 model Comment {
@@ -58,4 +63,17 @@ model Comment {
   createdAt DateTime @default(now())
   task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
   author    User     @relation(fields: [authorId], references: [id])
+}
+
+model Attachment {
+  id         String   @id @default(cuid())
+  filename   String
+  fileKey    String
+  fileSize   Int
+  mimeType   String
+  taskId     String
+  uploaderId String
+  createdAt  DateTime @default(now())
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  uploader   User     @relation(fields: [uploaderId], references: [id])
 }

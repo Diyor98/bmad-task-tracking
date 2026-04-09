@@ -10,6 +10,8 @@ const CreateTaskSchema = z.object({
   description: z.string().trim().max(10000).optional(),
   projectId: z.string().min(1),
   statusId: z.string().min(1),
+  dueDate: z.string().datetime().nullable().optional(),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).nullable().optional(),
 })
 
 const UpdateTaskSchema = z.object({
@@ -17,6 +19,12 @@ const UpdateTaskSchema = z.object({
   description: z.string().trim().max(10000).optional().nullable(),
   statusId: z.string().min(1).optional(),
   assigneeId: z.string().min(1).nullable().optional(),
+  dueDate: z.string().datetime().nullable().optional(),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).nullable().optional(),
+})
+
+const ReorderTaskSchema = z.object({
+  position: z.number().int().min(0),
 })
 
 const router = Router()
@@ -57,6 +65,15 @@ router.post('/', validate(CreateTaskSchema), async (req: Request, res: Response,
 router.patch('/:id', validate(UpdateTaskSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const task = await tasksService.update(req.params.id as string, req.body)
+    res.json({ data: task })
+  } catch (err) {
+    next(err)
+  }
+})
+
+router.patch('/:id/reorder', validate(ReorderTaskSchema), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const task = await tasksService.reorder(req.params.id as string, req.body.position)
     res.json({ data: task })
   } catch (err) {
     next(err)

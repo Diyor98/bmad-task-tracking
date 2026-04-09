@@ -3,6 +3,7 @@ import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { StatusChip } from './StatusChip'
 import { CommentThread } from './CommentThread'
+import { AttachmentSection } from './AttachmentSection'
 import type { Task } from '../hooks/useTasks'
 
 interface Status {
@@ -22,7 +23,7 @@ interface Props {
   statuses: Status[]
   users: User[]
   onClose: () => void
-  onUpdate: (data: { title?: string; description?: string; statusId?: string; assigneeId?: string | null }) => void
+  onUpdate: (data: { title?: string; description?: string; statusId?: string; assigneeId?: string | null; dueDate?: string | null; priority?: string | null }) => void
 }
 
 function TaskDetailPanelInner({ task, statuses, users, onClose, onUpdate }: Props) {
@@ -109,6 +110,33 @@ function TaskDetailPanelInner({ task, statuses, users, onClose, onUpdate }: Prop
           </select>
         </div>
 
+        {/* Priority */}
+        <div>
+          <label className="mb-1 block text-xs font-medium text-zinc-500">Priority</label>
+          <select
+            className="w-full rounded-md border border-zinc-300 px-2 py-1.5 text-sm text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            value={task.priority || ''}
+            onChange={(e) => onUpdate({ priority: e.target.value || null })}
+          >
+            <option value="">None</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="urgent">Urgent</option>
+          </select>
+        </div>
+
+        {/* Due Date */}
+        <div>
+          <label className="mb-1 block text-xs font-medium text-zinc-500">Due Date</label>
+          <input
+            type="date"
+            className="w-full rounded-md border border-zinc-300 px-2 py-1.5 text-sm text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            value={task.dueDate ? task.dueDate.split('T')[0] : ''}
+            onChange={(e) => onUpdate({ dueDate: e.target.value ? `${e.target.value}T00:00:00.000Z` : null })}
+          />
+        </div>
+
         {/* Description */}
         <div>
           <label className="mb-1 block text-xs font-medium text-zinc-500">Description</label>
@@ -130,6 +158,9 @@ function TaskDetailPanelInner({ task, statuses, users, onClose, onUpdate }: Prop
             </p>
           )}
         </div>
+
+        {/* Attachments */}
+        <AttachmentSection taskId={task.id} projectId={task.projectId} />
 
         {/* Comments */}
         <CommentThread taskId={task.id} />

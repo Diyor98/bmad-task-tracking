@@ -13,16 +13,27 @@ interface Props {
 export function CreateTaskDialog({ open, onClose, projectId, statusId }: Props) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [priority, setPriority] = useState('')
+  const [dueDate, setDueDate] = useState('')
   const createTask = useCreateTask()
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     createTask.mutate(
-      { title: title.trim(), description: description.trim() || undefined, projectId, statusId },
+      {
+        title: title.trim(),
+        description: description.trim() || undefined,
+        projectId,
+        statusId,
+        priority: priority || null,
+        dueDate: dueDate ? `${dueDate}T00:00:00.000Z` : null,
+      },
       {
         onSuccess: () => {
           setTitle('')
           setDescription('')
+          setPriority('')
+          setDueDate('')
           onClose()
         },
       },
@@ -33,6 +44,8 @@ export function CreateTaskDialog({ open, onClose, projectId, statusId }: Props) 
     if (!isOpen) {
       setTitle('')
       setDescription('')
+      setPriority('')
+      setDueDate('')
       onClose()
     }
   }
@@ -64,6 +77,33 @@ export function CreateTaskDialog({ open, onClose, projectId, statusId }: Props) 
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
+          </div>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label htmlFor="task-priority" className="mb-1 block text-sm font-medium text-zinc-700">Priority (optional)</label>
+              <select
+                id="task-priority"
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                value={priority}
+                onChange={(e) => setPriority(e.target.value)}
+              >
+                <option value="">None</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+            <div className="flex-1">
+              <label htmlFor="task-duedate" className="mb-1 block text-sm font-medium text-zinc-700">Due date (optional)</label>
+              <input
+                id="task-duedate"
+                type="date"
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+              />
+            </div>
           </div>
           <div className="flex justify-end">
             <Button type="submit" disabled={!title.trim() || createTask.isPending}>
