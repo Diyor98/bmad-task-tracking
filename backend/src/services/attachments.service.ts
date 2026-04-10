@@ -3,6 +3,7 @@ import path from 'path'
 import { prisma } from '../lib/prisma.js'
 import { AppError } from '../lib/AppError.js'
 import { UPLOADS_DIR } from '../middleware/upload.js'
+import { eventBus } from '../lib/eventBus.js'
 
 export const attachmentsService = {
   async listByTask(taskId: string) {
@@ -25,7 +26,9 @@ export const attachmentsService = {
     if (!task) {
       throw new AppError('NOT_FOUND', 404, 'Task not found')
     }
-    return prisma.attachment.create({ data })
+    const attachment = await prisma.attachment.create({ data })
+    eventBus.emitSSE({ type: 'attachment:created', projectId: task.projectId, data: attachment })
+    return attachment
   },
 
   async delete(id: string) {
@@ -36,6 +39,10 @@ export const attachmentsService = {
     const filePath = path.join(UPLOADS_DIR, attachment.fileKey)
     await fs.promises.unlink(filePath).catch(() => {})
     await prisma.attachment.delete({ where: { id } })
+    const task = await prisma.task.findUnique({ where: { id: attachment.taskId }, select: { projectId: true } })
+    if (task) {
+      eventBus.emitSSE({ type: 'attachment:deleted', projectId: task.projectId, data: { attachmentId: id, taskId: attachment.taskId } })
+    }
   },
 
   async deleteAllForTask(taskId: string) {

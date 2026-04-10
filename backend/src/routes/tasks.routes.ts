@@ -55,7 +55,8 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 
 router.post('/', validate(CreateTaskSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const task = await tasksService.create(req.body)
+    const currentUserId = (req as unknown as { user: { userId: string } }).user.userId
+    const task = await tasksService.create(req.body, currentUserId)
     res.status(201).json({ data: task })
   } catch (err) {
     next(err)
@@ -64,7 +65,8 @@ router.post('/', validate(CreateTaskSchema), async (req: Request, res: Response,
 
 router.patch('/:id', validate(UpdateTaskSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const task = await tasksService.update(req.params.id as string, req.body)
+    const currentUserId = (req as unknown as { user: { userId: string } }).user.userId
+    const task = await tasksService.update(req.params.id as string, req.body, currentUserId)
     res.json({ data: task })
   } catch (err) {
     next(err)

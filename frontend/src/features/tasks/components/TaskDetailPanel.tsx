@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { StatusChip } from './StatusChip'
 import { CommentThread } from './CommentThread'
 import { AttachmentSection } from './AttachmentSection'
+import { ActivitySection } from './ActivitySection'
 import type { Task } from '../hooks/useTasks'
 
 interface Status {
@@ -161,6 +162,9 @@ function TaskDetailPanelInner({ task, statuses, users, onClose, onUpdate }: Prop
 
         {/* Attachments */}
         <AttachmentSection taskId={task.id} projectId={task.projectId} />
+
+        {/* Activity */}
+        <ActivitySection taskId={task.id} />
 
         {/* Comments */}
         <CommentThread taskId={task.id} />

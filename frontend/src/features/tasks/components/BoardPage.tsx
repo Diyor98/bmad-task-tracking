@@ -18,6 +18,7 @@ import { ChevronDown, Settings, Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { StatusSettingsPanel } from './StatusSettingsPanel'
+import { useSSE } from '@/hooks/useSSE'
 
 interface Project {
   id: string
@@ -67,6 +68,7 @@ export function BoardPage() {
   const updateTask = useUpdateTask(projectId!, project?.statuses)
   const deleteTask = useDeleteTask(projectId!)
   const reorderTask = useReorderTask(projectId!)
+  useSSE(projectId)
 
   const [activeTask, setActiveTask] = useState<Task | null>(null)
 

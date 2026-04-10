@@ -110,12 +110,12 @@ development_status:
   epic-8-retrospective: optional
 
   # ── Epic 9: Notifications & Real-Time ───────────────────────────────────
-  epic-9: backlog
-  9-1-in-app-notifications: backlog
-  9-2-real-time-board-updates-via-sse: backlog
+  epic-9: done
+  9-1-in-app-notifications: done
+  9-2-real-time-board-updates-via-sse: done
   epic-9-retrospective: optional
 
   # ── Epic 10: Activity Log ──────────────────────────────────────────────
-  epic-10: backlog
-  10-1-task-activity-tracking: backlog
+  epic-10: done
+  10-1-task-activity-tracking: done
   epic-10-retrospective: optional

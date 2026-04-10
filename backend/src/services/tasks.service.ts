@@ -1,6 +1,9 @@
 import { prisma } from '../lib/prisma.js'
 import { AppError } from '../lib/AppError.js'
 import { attachmentsService } from './attachments.service.js'
+import { notificationsService } from './notifications.service.js'
+import { eventBus } from '../lib/eventBus.js'
+import { activitiesService } from './activities.service.js'
 
 const taskInclude = {
   status: true,
@@ -31,7 +34,7 @@ export const tasksService = {
     return task
   },
 
-  async create(data: { title: string; description?: string; projectId: string; statusId: string; dueDate?: string | null; priority?: string | null }) {
+  async create(data: { title: string; description?: string; projectId: string; statusId: string; dueDate?: string | null; priority?: string | null }, currentUserId?: string) {
     const status = await prisma.status.findUnique({ where: { id: data.statusId } })
     if (!status || status.projectId !== data.projectId) {
       throw new AppError('VALIDATION_ERROR', 400, 'Status does not belong to this project')
@@ -41,13 +44,18 @@ export const tasksService = {
       _max: { position: true },
     })
     const position = (maxPos._max.position ?? -1) + 1
-    return prisma.task.create({
+    const task = await prisma.task.create({
       data: { ...data, position },
       include: taskInclude,
     })
+    eventBus.emitSSE({ type: 'task:created', projectId: data.projectId, data: task })
+    if (currentUserId) {
+      activitiesService.create({ taskId: task.id, userId: currentUserId, action: 'created' }, data.projectId).catch(() => {})
+    }
+    return task
   },
 
-  async update(id: string, data: { title?: string; description?: string; statusId?: string; assigneeId?: string | null; dueDate?: string | null; priority?: string | null }) {
+  async update(id: string, data: { title?: string; description?: string; statusId?: string; assigneeId?: string | null; dueDate?: string | null; priority?: string | null }, currentUserId?: string) {
     const task = await prisma.task.findUnique({ where: { id } })
     if (!task) {
       throw new AppError('NOT_FOUND', 404, 'Task not found')
@@ -69,11 +77,63 @@ export const tasksService = {
         throw new AppError('VALIDATION_ERROR', 400, 'Status does not belong to this project')
       }
     }
-    return prisma.task.update({
+    const updated = await prisma.task.update({
       where: { id },
       data: updateData,
       include: taskInclude,
     })
+    // Notification: task assigned
+    if (data.assigneeId && data.assigneeId !== task.assigneeId && data.assigneeId !== currentUserId) {
+      notificationsService.create({
+        userId: data.assigneeId,
+        type: 'task_assigned',
+        message: `You were assigned to '${updated.title}'`,
+        taskId: id,
+      }).catch(() => {})
+    }
+    // Notification: status changed (notify current assignee after update)
+    if (data.statusId && data.statusId !== task.statusId && updated.assigneeId && updated.assigneeId !== currentUserId) {
+      const newStatus = updated.status
+      notificationsService.create({
+        userId: updated.assigneeId,
+        type: 'task_status_changed',
+        message: `'${updated.title}' was moved to ${newStatus.name}`,
+        taskId: id,
+      }).catch(() => {})
+    }
+    eventBus.emitSSE({ type: 'task:updated', projectId: task.projectId, data: updated })
+    // Activity tracking
+    if (currentUserId) {
+      const changes: { action: string; oldValue: string | null; newValue: string | null }[] = []
+      if (data.title !== undefined && data.title !== task.title) {
+        changes.push({ action: 'title', oldValue: task.title, newValue: data.title })
+      }
+      if (data.description !== undefined && data.description !== task.description) {
+        changes.push({ action: 'description', oldValue: task.description, newValue: data.description ?? null })
+      }
+      if (data.statusId && data.statusId !== task.statusId) {
+        const oldStatus = await prisma.status.findUnique({ where: { id: task.statusId }, select: { name: true } })
+        changes.push({ action: 'status', oldValue: oldStatus?.name ?? null, newValue: updated.status.name })
+      }
+      if (data.assigneeId !== undefined && data.assigneeId !== task.assigneeId) {
+        const oldAssignee = task.assigneeId ? await prisma.user.findUnique({ where: { id: task.assigneeId }, select: { name: true } }) : null
+        changes.push({ action: 'assignee', oldValue: oldAssignee?.name ?? null, newValue: updated.assignee?.name ?? null })
+      }
+      if (data.priority !== undefined && data.priority !== task.priority) {
+        changes.push({ action: 'priority', oldValue: task.priority, newValue: data.priority ?? null })
+      }
+      if (data.dueDate !== undefined) {
+        const oldDate = task.dueDate ? task.dueDate.toISOString().split('T')[0] : null
+        const newDate = data.dueDate ? data.dueDate.split('T')[0] : null
+        if (oldDate !== newDate) {
+          changes.push({ action: 'dueDate', oldValue: oldDate, newValue: newDate })
+        }
+      }
+      for (const change of changes) {
+        activitiesService.create({ taskId: id, userId: currentUserId, ...change }, task.projectId).catch(() => {})
+      }
+    }
+    return updated
   },
 
   async reorder(id: string, newPosition: number) {
@@ -98,6 +158,7 @@ export const tasksService = {
     if (!updated) {
       throw new AppError('NOT_FOUND', 404, 'Task not found')
     }
+    eventBus.emitSSE({ type: 'task:reordered', projectId: task.projectId, data: updated })
     return updated
   },
 
@@ -108,5 +169,6 @@ export const tasksService = {
     }
     await attachmentsService.deleteAllForTask(id)
     await prisma.task.delete({ where: { id } })
+    eventBus.emitSSE({ type: 'task:deleted', projectId: task.projectId, data: { taskId: id, projectId: task.projectId } })
   },
 }

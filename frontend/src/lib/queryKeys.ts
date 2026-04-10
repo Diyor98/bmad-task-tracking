@@ -13,6 +13,12 @@ export const queryKeys = {
   users: {
     all: ['users'] as const,
   },
+  activities: {
+    byTask: (taskId: string) => ['activities', taskId] as const,
+  },
+  notifications: {
+    all: ['notifications'] as const,
+  },
   attachments: {
     byTask: (taskId: string) => ['attachments', taskId] as const,
   },

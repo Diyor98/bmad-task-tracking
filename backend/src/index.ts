@@ -8,6 +8,9 @@ import tasksRoutes from './routes/tasks.routes.js'
 import commentsRoutes from './routes/comments.routes.js'
 import statusesRoutes from './routes/statuses.routes.js'
 import attachmentsRoutes from './routes/attachments.routes.js'
+import notificationsRoutes from './routes/notifications.routes.js'
+import eventsRoutes from './routes/events.routes.js'
+import activitiesRoutes from './routes/activities.routes.js'
 import { AppError } from './lib/AppError.js'
 import { ValidationError } from './middleware/validate.js'
 
@@ -38,6 +41,9 @@ app.use('/api/projects', statusesRoutes)
 app.use('/api/tasks', tasksRoutes)
 app.use('/api/tasks', commentsRoutes)
 app.use('/api', attachmentsRoutes)
+app.use('/api/notifications', notificationsRoutes)
+app.use('/api/tasks', activitiesRoutes)
+app.use('/api', eventsRoutes)
 
 // Global error handler
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
