@@ -24,7 +24,7 @@ if (!process.env.DATABASE_URL) {
 }
 
 const app = express()
-const PORT = process.env.PORT || 3000
+const PORT = process.env.APP_PORT || 3000
 
 app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }))
 app.use(express.json())
